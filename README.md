@@ -7,9 +7,9 @@ A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-la
 
 <p align="center">
   <picture align="center">
-    <source media="(prefers-color-scheme: dark)" srcset="assets/benchmark-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/benchmark-light.svg">
-    <img alt="Benchmark results comparing bashls to bash-language-server." src="assets/benchmark-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-light.svg">
+    <img alt="Benchmark results comparing bashls to bash-language-server." src="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
   </picture>
 </p>
 
