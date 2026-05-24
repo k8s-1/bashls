@@ -16,7 +16,7 @@
   <rect x="32" y="104" width="9" height="24" fill="#1a7f37" rx="3"/>
   <text x="47" y="121" fill="#1f2328" font-size="12">13 ms</text>
 
-  <text x="32" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">27×</tspan> faster startup</text>
+  <text x="32" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">26×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
   <text x="340" y="60" fill="#1f2328" font-size="14" font-weight="600">Memory (RSS)</text>
