@@ -35,6 +35,8 @@ Diagnostics and formatting require additional tools:
 cargo install bashls
 ```
 
+Or download a pre-built binary for your platform from the [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
+
 Or build from source:
 
 ```
