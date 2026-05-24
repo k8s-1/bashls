@@ -542,3 +542,67 @@ pub fn find_declaration_using_local_semantics(
 
     (declaration, continue_searching)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parser::create_parser;
+
+    fn parse(content: &str) -> (tree_sitter::Tree, Uri) {
+        let mut parser = create_parser().unwrap();
+        let tree = parser.parse(content.as_bytes(), None).unwrap();
+        let uri: Uri = "file:///test.sh".parse().unwrap();
+        (tree, uri)
+    }
+
+    #[test]
+    fn get_global_declarations_finds_function() {
+        let content = "myfunc() { echo hi; }\n";
+        let (tree, uri) = parse(content);
+        let decls = get_global_declarations(&tree, &uri, content.as_bytes());
+        assert!(decls.contains_key("myfunc"), "{decls:?}");
+    }
+
+    #[test]
+    fn get_global_declarations_finds_variable() {
+        let content = "myvar=hello\n";
+        let (tree, uri) = parse(content);
+        let decls = get_global_declarations(&tree, &uri, content.as_bytes());
+        assert!(decls.contains_key("myvar"), "{decls:?}");
+    }
+
+    #[test]
+    fn get_global_declarations_excludes_variable_inside_if() {
+        let content = "if true; then\n  inside=1\nfi\n";
+        let (tree, uri) = parse(content);
+        let decls = get_global_declarations(&tree, &uri, content.as_bytes());
+        assert!(!decls.contains_key("inside"), "var inside if should not be global");
+    }
+
+    #[test]
+    fn get_global_declarations_excludes_variable_inside_function() {
+        let content = "myfunc() { local x=1; }\n";
+        let (tree, uri) = parse(content);
+        let decls = get_global_declarations(&tree, &uri, content.as_bytes());
+        assert!(!decls.contains_key("x"), "var inside function should not be global");
+        assert!(decls.contains_key("myfunc"));
+    }
+
+    #[test]
+    fn get_all_declarations_in_tree_includes_nested_variable() {
+        let content = "outer() {\n  inner_var=1\n}\n";
+        let (tree, uri) = parse(content);
+        let decls = get_all_declarations_in_tree(&tree, &uri, content.as_bytes());
+        let names: Vec<_> = decls.iter().map(|s| s.name.as_str()).collect();
+        assert!(names.contains(&"outer"), "{names:?}");
+        assert!(names.contains(&"inner_var"), "{names:?}");
+    }
+
+    #[test]
+    fn get_all_declarations_in_tree_empty_for_no_declarations() {
+        let content = "echo hello\n";
+        let (tree, uri) = parse(content);
+        let decls = get_all_declarations_in_tree(&tree, &uri, content.as_bytes());
+        assert!(decls.is_empty(), "{decls:?}");
+    }
+}

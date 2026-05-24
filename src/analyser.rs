@@ -731,3 +731,97 @@ impl Analyser {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parser::create_parser;
+
+    const URI: &str = "file:///test.sh";
+
+    fn make_analyser(content: &str) -> Analyser {
+        let parser = create_parser().unwrap();
+        let mut a = Analyser::new(parser, None);
+        a.analyze(URI, content);
+        a
+    }
+
+    #[test]
+    fn word_at_point_returns_first_token() {
+        let a = make_analyser("echo hello\n");
+        assert_eq!(a.word_at_point(URI, 0, 0), Some("echo".to_string()));
+    }
+
+    #[test]
+    fn word_at_point_returns_second_token() {
+        let a = make_analyser("echo hello\n");
+        assert_eq!(a.word_at_point(URI, 0, 6), Some("hello".to_string()));
+    }
+
+    #[test]
+    fn word_at_point_returns_none_for_whitespace() {
+        let a = make_analyser("echo hello\n");
+        assert_eq!(a.word_at_point(URI, 0, 4), None);
+    }
+
+    #[test]
+    fn word_at_point_returns_none_for_unknown_uri() {
+        let a = make_analyser("echo hi\n");
+        assert_eq!(a.word_at_point("file:///other.sh", 0, 0), None);
+    }
+
+    #[test]
+    fn get_declarations_for_uri_finds_function() {
+        let a = make_analyser("myfunc() { echo hi; }\n");
+        let syms = a.get_declarations_for_uri(URI);
+        assert!(syms.iter().any(|s| s.name == "myfunc"), "{syms:?}");
+    }
+
+    #[test]
+    fn get_declarations_for_uri_finds_variable() {
+        let a = make_analyser("myvar=hello\n");
+        let syms = a.get_declarations_for_uri(URI);
+        assert!(syms.iter().any(|s| s.name == "myvar"), "{syms:?}");
+    }
+
+    #[test]
+    fn get_declarations_for_uri_returns_empty_for_unknown_uri() {
+        let a = make_analyser("myvar=1\n");
+        assert!(a.get_declarations_for_uri("file:///other.sh").is_empty());
+    }
+
+    #[test]
+    fn find_occurrences_counts_all_instances() {
+        let a = make_analyser("myvar=1\necho $myvar\nmyvar=2\n");
+        let locs = a.find_occurrences(URI, "myvar");
+        assert_eq!(locs.len(), 3);
+    }
+
+    #[test]
+    fn find_occurrences_returns_empty_for_absent_word() {
+        let a = make_analyser("echo hello\n");
+        assert!(a.find_occurrences(URI, "nonexistent").is_empty());
+    }
+
+    #[test]
+    fn find_declarations_with_fuzzy_search_empty_returns_all() {
+        let mut a = make_analyser("myfunc() { echo hi; }\nmyvar=1\n");
+        let syms = a.find_declarations_with_fuzzy_search("");
+        assert!(syms.len() >= 2, "{syms:?}");
+    }
+
+    #[test]
+    fn find_declarations_with_fuzzy_search_filters_by_substring() {
+        let mut a = make_analyser("myfunc() { echo hi; }\nother=1\n");
+        let syms = a.find_declarations_with_fuzzy_search("myf");
+        assert!(syms.iter().all(|s| s.name.contains("myf")));
+        assert!(!syms.iter().any(|s| s.name == "other"));
+    }
+
+    #[test]
+    fn analyze_produces_no_diagnostics_for_valid_source() {
+        let mut a = Analyser::new(create_parser().unwrap(), None);
+        let diags = a.analyze(URI, "echo hello\n");
+        assert!(diags.is_empty());
+    }
+}
