@@ -12,7 +12,7 @@ Open a GitHub issue. Include:
 ## Pull requests
 
 1. Fork the repo and create a branch
-2. Make your changes — run `just test` and `just lint` before submitting
+2. Make your changes — run `just ci` before submitting
 3. Open a PR with a clear description of what and why
 4. If any commit was written with AI assistance, include a `Co-Authored-By` trailer identifying the model, e.g.:
    ```
@@ -23,9 +23,7 @@ Open a GitHub issue. Include:
 
 ```
 just build   # cargo build --release
-just test    # cargo test
-just lint    # cargo clippy -- -D warnings
-just fmt     # cargo fmt
+just ci      # fmt check, lint, audit, test
 ```
 
 See `CLAUDE.md` for architecture notes.
