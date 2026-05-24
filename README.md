@@ -28,8 +28,8 @@ A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-la
 
 Diagnostics and formatting require additional tools:
 
-- [shellcheck](https://github.com/koalaman/shellcheck) — diagnostics
-- [shfmt](https://github.com/mvdan/sh) — formatting
+- [shellcheck](https://github.com/koalaman/shellcheck)
+- [shfmt](https://github.com/mvdan/sh)
 
 #### Via cargo
 ```
