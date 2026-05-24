@@ -60,3 +60,38 @@ vim.lsp.config('bashls', {
 })
 vim.lsp.enable('bashls')
 ```
+
+## Configuration
+
+Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables. LSP settings take effect at runtime and can be updated via `workspace/didChangeConfiguration`.
+
+| Env var | LSP setting (`bashIde.*`) | Default | Notes |
+|---|---|---|---|
+| `SHELLCHECK_PATH` | `shellcheckPath` | `shellcheck` | Set to empty string to disable |
+| *(see [shellcheck](https://github.com/koalaman/shellcheck))* | `shellcheckArguments` | `[]` | Additional shellcheck arguments |
+| `SHFMT_PATH` | `shfmt.path` | `shfmt` | Set to empty string to disable |
+| *(see [shfmt](https://github.com/mvdan/sh))* | `shfmt.*` | | Remaining shfmt options |
+| `GLOB_PATTERN` | `globPattern` | `**/*@(.sh,.inc,.bash,.command)` | Files the server treats as bash |
+| `BACKGROUND_ANALYSIS_MAX_FILES` | `backgroundAnalysisMaxFiles` | `500` | Max files to analyse in background for workspace-wide features |
+| `INCLUDE_ALL_WORKSPACE_SYMBOLS` | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files |
+| `ENABLE_SOURCE_ERROR_DIAGNOSTICS` | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved |
+| `BASH_IDE_LOG_LEVEL` | `logLevel` | `info` | |
+
+### Neovim example
+
+```lua
+vim.lsp.config('bashls', {
+  cmd = { 'bashls' },
+  filetypes = { 'sh' },
+  root_markers = { '.git' },
+  settings = {
+    bashIde = {
+      shellcheckPath = '/usr/bin/shellcheck',
+      shfmt = {
+        path = '/usr/bin/shfmt',
+      },
+    },
+  },
+})
+vim.lsp.enable('bashls')
+```
