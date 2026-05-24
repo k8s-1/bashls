@@ -71,7 +71,7 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `shellcheckArguments` | `[]` | Additional arguments passed to [shellcheck](https://github.com/koalaman/shellcheck). |
 | `shfmt.path` | `shfmt` | Path to shfmt binary. Set to empty string to disable. |
 | `shfmt.*` | | See [shfmt](https://github.com/mvdan/sh) for remaining options. |
-| `globPattern` | `*.sh, *.bash, *.inc, *.command` | Files the server treats as bash. |
+| `globPattern` | `**/*@(.sh\|.inc\|.bash\|.command)` | Files the server treats as bash. |
 | `backgroundAnalysisMaxFiles` | `500` | Max files to analyse in background for workspace-wide features. |
 | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
 | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
