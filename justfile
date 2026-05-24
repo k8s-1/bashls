@@ -52,7 +52,7 @@ release version: ci
     cargo set-version {{version}}
     git add Cargo.toml Cargo.lock
     git commit -m "chore: bump version to {{version}}"
-    git tag v{{version}}
+    git tag v{{version}} -m "v{{version}}"
     git push origin main --tags
 
 # publish to crates.io
