@@ -46,9 +46,22 @@ cd bashls
 cargo build --release
 ```
 
-## Configuration
+## Editor support
 
 bashls works with any editor that supports LSP. Consult your editor's LSP documentation for implementation.
+
+### Neovim
+
+```lua
+vim.lsp.config('bashls', {
+  cmd = { 'bashls' },
+  filetypes = { 'sh' },
+  root_markers = { '.git' },
+})
+vim.lsp.enable('bashls')
+```
+
+## Configuration
 
 Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`, `bashIde.logLevel` → `BASH_IDE_LOG_LEVEL`).
 
@@ -61,14 +74,3 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 - `includeAllWorkspaceSymbols` (default: `false`) — return functions and variables from all workspace files in symbol search, not just open files
 - `enableSourceErrorDiagnostics` (default: `false`) — show diagnostics when a `source`/`.` command cannot be resolved
 - `logLevel` (default: `info`)
-
-### Neovim
-
-```lua
-vim.lsp.config('bashls', {
-  cmd = { 'bashls' },
-  filetypes = { 'sh' },
-  root_markers = { '.git' },
-})
-vim.lsp.enable('bashls')
-```
