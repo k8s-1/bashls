@@ -12,4 +12,4 @@ about: Something isn't working
 **Environment**
 - OS:
 - Editor:
-- `bls` version:
+- `bashls` version:

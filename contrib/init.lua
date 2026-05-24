@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-global
-local bin = vim.fn.getcwd() .. '/target/debug/bls'
+local bin = vim.fn.getcwd() .. '/target/debug/bashls'
 
 vim.diagnostic.config({ virtual_text = true, signs = true, underline = true, update_in_insert = true })
 vim.opt.completeopt = { 'menu', 'menuone', 'noselect' }
@@ -24,9 +24,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
-vim.lsp.config('bls', {
+vim.lsp.config('bashls', {
   cmd = { bin },
   filetypes = { 'sh' },
   root_markers = { '.git' },
 })
-vim.lsp.enable('bls')
+vim.lsp.enable('bashls')
