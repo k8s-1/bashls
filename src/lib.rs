@@ -2,6 +2,7 @@ pub mod analyser;
 pub mod builtins;
 pub mod config;
 pub mod executables;
+pub mod handlers;
 pub mod parser;
 pub mod reserved_words;
 pub mod server;

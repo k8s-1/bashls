@@ -81,6 +81,17 @@ fn expand_extglob(pattern: &str) -> Vec<String> {
     vec![pattern.to_string()]
 }
 
+pub fn make_relative(target: &str, base_dir: &str) -> String {
+    if let (Ok(t), Ok(b)) = (
+        std::path::Path::new(target).canonicalize(),
+        std::path::Path::new(base_dir).canonicalize(),
+    ) && let Ok(rel) = t.strip_prefix(&b)
+    {
+        return rel.to_string_lossy().into_owned();
+    }
+    target.to_string()
+}
+
 fn percent_decode(s: &str) -> String {
     let bytes = s.as_bytes();
     let mut out = Vec::with_capacity(bytes.len());

@@ -1,6 +1,22 @@
 use anyhow::Result;
 use std::process::Command;
 
+const GET_OPTIONS_SH: &str = include_str!("../get-options.sh");
+
+pub fn get_command_options(cmd: &str, word: &str) -> Vec<String> {
+    match Command::new("bash")
+        .args(["-c", GET_OPTIONS_SH, "--", cmd, word])
+        .output()
+    {
+        Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout)
+            .split('\t')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty() && s.starts_with('-'))
+            .collect(),
+        _ => vec![],
+    }
+}
+
 pub fn get_shell_documentation(word: &str) -> Result<Option<String>> {
     if word.chars().any(|c| c == ' ' || c == '\n' || c == '\t') {
         return Err(anyhow::anyhow!("Invalid word: {word:?}"));

@@ -9,8 +9,8 @@ use crate::util::fs::{get_file_paths, path_to_uri, uri_to_path};
 use crate::util::shebang::analyze_file;
 use crate::util::sourcing::{SourceCommand, get_source_commands};
 use crate::util::tree_sitter::{
-    collect_typed_nodes, find_parent, for_each, is_definition, is_reference,
-    is_variable_in_read_command, node_range, nodes_same, position_to_point,
+    find_parent, for_each, is_definition, is_reference, is_variable_in_read_command, node_range,
+    position_to_point,
 };
 use lsp_types::{
     Diagnostic, DiagnosticSeverity, Location, Position, Range, SymbolInformation, SymbolKind, Uri,
@@ -608,145 +608,14 @@ impl Analyser {
         let Some(doc) = self.docs.get(uri) else {
             return vec![];
         };
-        let source = doc.source.as_bytes();
-        let root = doc.tree.root_node();
-
-        let scope_node = scope.map(|s| {
-            let sp = position_to_point(s.start);
-            let ep = position_to_point(s.end);
-            root.descendant_for_point_range(sp, ep).unwrap_or(root)
-        });
-
-        let base_node = match scope_node {
-            Some(sn) if kind == SymbolKind::VARIABLE || sn.kind() == "subshell" => sn,
-            _ => root,
-        };
-
-        let effective_start = start
-            .map(position_to_point)
-            .unwrap_or_else(|| base_node.start_position());
-
-        let kinds: &[&str] = if kind == SymbolKind::VARIABLE {
-            &["variable_name", "word"]
-        } else {
-            &["function_definition", "command_name"]
-        };
-
-        let mut nodes = Vec::new();
-        collect_typed_nodes(base_node, kinds, effective_start, &mut nodes);
-
-        let mut ignored_ranges: Vec<Range> = Vec::new();
-        let mut result: Vec<Range> = Vec::new();
-
-        if kind == SymbolKind::VARIABLE {
-            for n in nodes {
-                let text = match n.utf8_text(source) {
-                    Ok(t) => t,
-                    Err(_) => continue,
-                };
-                if text != word {
-                    continue;
-                }
-                if n.kind() == "word" && !is_variable_in_read_command(n, source) {
-                    continue;
-                }
-
-                let definition = find_parent(n, |p| p.kind() == "variable_assignment");
-                let defined_var = definition
-                    .and_then(|d| d.named_child(0))
-                    .filter(|v| v.kind() == "variable_name");
-                let defined_var_matches = defined_var
-                    .and_then(|v| v.utf8_text(source).ok())
-                    .is_some_and(|t| t == word);
-
-                if defined_var_matches {
-                    let is_self = defined_var.is_some_and(|dv| dv.start_byte() == n.start_byte());
-                    if !is_self {
-                        let def_row = definition.map(|d| d.start_position().row).unwrap_or(0);
-                        if start.is_some_and(|s| def_row == s.line as usize) {
-                            continue;
-                        }
-                        result.push(node_range(n));
-                        continue;
-                    }
-                }
-
-                let parent_scope = find_parent(n, |p| {
-                    p.kind() == "function_definition" || p.kind() == "subshell"
-                });
-                let in_base = parent_scope.is_none_or(|ps| nodes_same(ps, base_node));
-                if in_base {
-                    result.push(node_range(n));
-                    continue;
-                }
-
-                let include = !in_ignored_range(&ignored_ranges, n);
-                let declaration_command = find_parent(n, |p| p.kind() == "declaration_command");
-                let kw = declaration_command
-                    .and_then(|dc| dc.child(0))
-                    .and_then(|c| c.utf8_text(source).ok())
-                    .unwrap_or("");
-                let is_local_kw = matches!(kw, "local" | "declare" | "typeset");
-                let parent_is_subshell = parent_scope.is_some_and(|ps| ps.kind() == "subshell");
-
-                let is_local = ((defined_var_matches
-                    || (definition.is_none() && declaration_command.is_some()))
-                    && (parent_is_subshell || is_local_kw))
-                    || (parent_is_subshell && n.kind() == "word");
-
-                if is_local {
-                    if include && let Some(ps) = parent_scope {
-                        ignored_ranges.push(node_range(ps));
-                    }
-                    continue;
-                }
-
-                if include {
-                    result.push(node_range(n));
-                }
-            }
-        } else {
-            for n in nodes {
-                let text = if n.kind() == "function_definition" {
-                    n.named_child(0)
-                        .and_then(|c| c.utf8_text(source).ok())
-                        .unwrap_or("")
-                        .to_string()
-                } else {
-                    n.utf8_text(source).unwrap_or("").to_string()
-                };
-                if text != word {
-                    continue;
-                }
-
-                let parent_subshell = find_parent(n, |p| p.kind() == "subshell");
-                let in_base = parent_subshell.is_none_or(|ps| nodes_same(ps, base_node));
-                if in_base {
-                    let r = if n.kind() == "function_definition" {
-                        n.named_child(0)
-                            .map(node_range)
-                            .unwrap_or_else(|| node_range(n))
-                    } else {
-                        node_range(n)
-                    };
-                    result.push(r);
-                    continue;
-                }
-
-                let include = !in_ignored_range(&ignored_ranges, n);
-                if n.kind() == "function_definition" {
-                    if include && let Some(ps) = parent_subshell {
-                        ignored_ranges.push(node_range(ps));
-                    }
-                    continue;
-                }
-                if include {
-                    result.push(node_range(n));
-                }
-            }
-        }
-
-        result
+        crate::util::declarations::find_occurrences_within_tree(
+            doc.tree.root_node(),
+            doc.source.as_bytes(),
+            word,
+            kind,
+            start,
+            scope,
+        )
     }
 
     fn find_all_sourced_uris(&self, uri: &str) -> Vec<String> {
@@ -861,10 +730,3 @@ impl Analyser {
     }
 }
 
-fn in_ignored_range(ignored: &[Range], n: tree_sitter::Node<'_>) -> bool {
-    let start_row = n.start_position().row;
-    let end_row = n.end_position().row;
-    ignored
-        .iter()
-        .any(|r| start_row > r.start.line as usize && end_row < r.end.line as usize)
-}

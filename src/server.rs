@@ -1,16 +1,13 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use lsp_server::{Connection, Message, Notification, Request, Response};
 use lsp_types::notification::Notification as _;
 use lsp_types::request::Request as _;
 use lsp_types::{
-    CodeAction, CodeActionKind, CodeActionOrCommand, CompletionItem, CompletionItemKind,
-    CompletionOptions, CompletionResponse, Diagnostic, DocumentHighlight, FormattingOptions,
-    GotoDefinitionResponse, Hover, Location, MarkupContent, MarkupKind, Position,
-    PublishDiagnosticsParams, RenameOptions, ServerCapabilities, SymbolInformation, SymbolKind,
-    TextDocumentSyncCapability, TextDocumentSyncKind, TextEdit, Uri, WorkspaceEdit,
-    WorkspaceSymbolResponse,
+    CodeAction, CompletionOptions, CompletionResponse, GotoDefinitionResponse,
+    PublishDiagnosticsParams, RenameOptions, ServerCapabilities, TextDocumentSyncCapability,
+    TextDocumentSyncKind, WorkspaceSymbolResponse,
     notification::{
         DidChangeConfiguration, DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument,
         Initialized, PublishDiagnostics,
@@ -21,22 +18,20 @@ use lsp_types::{
         ResolveCompletionItem, WorkspaceSymbolRequest,
     },
 };
-use serde_json::{Value, json};
+use serde_json::Value;
 
 use crate::analyser::Analyser;
-use crate::builtins;
 use crate::config::Config;
 use crate::executables::Executables;
+use crate::handlers::{
+    handle_code_action, handle_completion, handle_completion_resolve, handle_document_highlight,
+    handle_formatting, handle_goto_definition, handle_hover, handle_prepare_rename,
+    handle_references, handle_rename,
+};
 use crate::parser::create_parser;
-use crate::reserved_words;
 use crate::shellcheck::Linter;
 use crate::shfmt::Formatter;
-use crate::snippets::get_snippets;
-use crate::util::fs::{uri_to_path, uri_to_path_opt};
-use crate::util::lsp::is_position_in_range;
-use crate::util::sh::get_shell_documentation;
-
-const PARAMETER_EXPANSION_PREFIXES: &[&str] = &["$", "${"];
+use crate::util::fs::uri_to_path;
 
 fn check_runtime_deps() {
     let bash_ok = std::process::Command::new("bash")
@@ -156,7 +151,7 @@ fn server_capabilities() -> ServerCapabilities {
         references_provider: Some(lsp_types::OneOf::Left(true)),
         code_action_provider: Some(lsp_types::CodeActionProviderCapability::Options(
             lsp_types::CodeActionOptions {
-                code_action_kinds: Some(vec![CodeActionKind::QUICKFIX]),
+                code_action_kinds: Some(vec![lsp_types::CodeActionKind::QUICKFIX]),
                 resolve_provider: Some(false),
                 work_done_progress_options: Default::default(),
             },
@@ -170,25 +165,25 @@ fn server_capabilities() -> ServerCapabilities {
     }
 }
 
-struct DocumentState {
-    content: String,
-    version: i32,
+pub(crate) struct DocumentState {
+    pub(crate) content: String,
+    pub(crate) version: i32,
 }
 
-struct Server {
-    analyser: Analyser,
-    config: Config,
-    executables: Executables,
-    linter: Option<Linter>,
-    formatter: Option<Formatter>,
-    workspace_folder: Option<String>,
-    documents: HashMap<String, DocumentState>,
-    code_actions: HashMap<String, HashMap<String, CodeAction>>,
-    initialized: bool,
-    current_document: Option<String>,
-    client_capabilities: lsp_types::ClientCapabilities,
-    pending_config_request_id: Option<lsp_server::RequestId>,
-    next_request_id: i32,
+pub(crate) struct Server {
+    pub(crate) analyser: Analyser,
+    pub(crate) config: Config,
+    pub(crate) executables: Executables,
+    pub(crate) linter: Option<Linter>,
+    pub(crate) formatter: Option<Formatter>,
+    pub(crate) workspace_folder: Option<String>,
+    pub(crate) documents: HashMap<String, DocumentState>,
+    pub(crate) code_actions: HashMap<String, HashMap<String, CodeAction>>,
+    pub(crate) initialized: bool,
+    pub(crate) current_document: Option<String>,
+    pub(crate) client_capabilities: lsp_types::ClientCapabilities,
+    pub(crate) pending_config_request_id: Option<lsp_server::RequestId>,
+    pub(crate) next_request_id: i32,
 }
 
 impl Server {
@@ -315,8 +310,7 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
                 .as_str()
                 .to_string();
             let pos = params.text_document_position_params.position;
-            let result = handle_hover(server, &uri, pos);
-            match result {
+            match handle_hover(server, &uri, pos) {
                 Some(h) => respond!(h),
                 None => respond_null!(),
             }
@@ -330,8 +324,7 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
                 .as_str()
                 .to_string();
             let pos = params.text_document_position_params.position;
-            let result = handle_goto_definition(server, &uri, pos);
-            match result {
+            match handle_goto_definition(server, &uri, pos) {
                 Some(locs) if !locs.is_empty() => respond!(GotoDefinitionResponse::Array(locs)),
                 _ => respond_null!(),
             }
@@ -346,8 +339,7 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
                 .to_string();
             let pos = params.text_document_position.position;
             let include_decl = params.context.include_declaration;
-            let result = handle_references(server, &uri, pos, include_decl);
-            respond!(result);
+            respond!(handle_references(server, &uri, pos, include_decl));
         }
         Completion::METHOD => {
             let params: lsp_types::CompletionParams = serde_json::from_value(req.params)?;
@@ -358,13 +350,13 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
                 .as_str()
                 .to_string();
             let pos = params.text_document_position.position;
-            let result = handle_completion(server, &uri, pos);
-            respond!(CompletionResponse::Array(result));
+            respond!(CompletionResponse::Array(handle_completion(
+                server, &uri, pos
+            )));
         }
         ResolveCompletionItem::METHOD => {
-            let item: CompletionItem = serde_json::from_value(req.params)?;
-            let result = handle_completion_resolve(item);
-            respond!(result);
+            let item: lsp_types::CompletionItem = serde_json::from_value(req.params)?;
+            respond!(handle_completion_resolve(item));
         }
         DocumentHighlightRequest::METHOD => {
             let params: lsp_types::DocumentHighlightParams = serde_json::from_value(req.params)?;
@@ -375,8 +367,7 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
                 .as_str()
                 .to_string();
             let pos = params.text_document_position_params.position;
-            let result = handle_document_highlight(server, &uri, pos);
-            respond!(result);
+            respond!(handle_document_highlight(server, &uri, pos));
         }
         DocumentSymbolRequest::METHOD => {
             let params: lsp_types::DocumentSymbolParams = serde_json::from_value(req.params)?;
@@ -394,15 +385,13 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
         CodeActionRequest::METHOD => {
             let params: lsp_types::CodeActionParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
-            let result = handle_code_action(server, &uri, &params.context.diagnostics);
-            respond!(result);
+            respond!(handle_code_action(server, &uri, &params.context.diagnostics));
         }
         PrepareRenameRequest::METHOD => {
             let params: lsp_types::TextDocumentPositionParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
             let pos = params.position;
-            let result = handle_prepare_rename(server, &uri, pos);
-            match result {
+            match handle_prepare_rename(server, &uri, pos) {
                 Some(r) => respond!(r),
                 None => respond_null!(),
             }
@@ -416,8 +405,7 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
                 .as_str()
                 .to_string();
             let pos = params.text_document_position.position;
-            let result = handle_rename(server, &uri, pos, &params.new_name);
-            match result {
+            match handle_rename(server, &uri, pos, &params.new_name) {
                 Some(r) => respond!(r),
                 None => respond_null!(),
             }
@@ -425,8 +413,7 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
         Formatting::METHOD => {
             let params: lsp_types::DocumentFormattingParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
-            let result = handle_formatting(server, &uri, &params.options);
-            respond!(result);
+            respond!(handle_formatting(server, &uri, &params.options));
         }
         _ => {
             let response = Response::new_err(
@@ -500,13 +487,11 @@ fn handle_notification(
                 server.pending_config_request_id = Some(cfg_id);
             }
 
-            // Start background analysis
             let max = server.config.background_analysis_max_files;
             let pattern = server.config.glob_pattern.clone();
             let count = server.analyser.background_analysis(&pattern, max);
             log::info!("Background analysis parsed {count} files");
 
-            // Re-analyze current document if any
             if let Some(uri) = server.current_document.clone()
                 && let Some(doc) = server.documents.get(&uri)
             {
@@ -557,7 +542,6 @@ fn handle_notification(
             let uri = params.text_document.uri.as_str().to_string();
             server.documents.remove(&uri);
             server.code_actions.remove(&uri);
-            // Clear diagnostics
             let params = PublishDiagnosticsParams {
                 uri: params.text_document.uri,
                 version: None,
@@ -583,482 +567,13 @@ fn handle_notification(
     Ok(())
 }
 
-fn handle_hover(server: &mut Server, uri: &str, pos: Position) -> Option<Hover> {
-    let word = server
-        .analyser
-        .word_at_point(uri, pos.line, pos.character)?;
-    if word.starts_with('#') {
-        return None;
-    }
-
-    let symbols = server
-        .analyser
-        .find_declarations_matching_word(uri, &word, Some(pos), true);
-
-    if (reserved_words::is_reserved_word(&word)
-        || builtins::is_builtin(&word)
-        || (server.executables.is_on_path(&word) && symbols.is_empty()))
-        && let Ok(Some(doc)) = get_shell_documentation(&word)
-    {
-        return Some(Hover {
-            contents: lsp_types::HoverContents::Markup(MarkupContent {
-                kind: MarkupKind::Markdown,
-                value: format!("```man\n{doc}\n```"),
-            }),
-            range: None,
-        });
-    }
-
-    let unique = deduplicate_symbols(symbols, uri);
-    let filtered: Vec<_> = unique
-        .into_iter()
-        .filter(|s| s.location.uri.as_str() != uri || s.location.range.start.line != pos.line)
-        .collect();
-
-    if let Some(sym) = filtered.into_iter().next() {
-        let content = get_symbol_documentation(&server.analyser, uri, &sym);
-        return Some(Hover {
-            contents: lsp_types::HoverContents::Markup(content),
-            range: None,
-        });
-    }
-
-    None
-}
-
-fn handle_goto_definition(server: &mut Server, uri: &str, pos: Position) -> Option<Vec<Location>> {
-    let word = server
-        .analyser
-        .word_at_point(uri, pos.line, pos.character)?;
-    let locs = server.analyser.find_declaration_locations(uri, &word, pos);
-    if locs.is_empty() { None } else { Some(locs) }
-}
-
-fn handle_references(
-    server: &mut Server,
-    uri: &str,
-    pos: Position,
-    include_declaration: bool,
-) -> Vec<Location> {
-    let Some(word) = server.analyser.word_at_point(uri, pos.line, pos.character) else {
-        return vec![];
-    };
-    server
-        .analyser
-        .find_references(&word)
-        .into_iter()
-        .filter(|l| include_declaration || !is_position_in_range(pos, l.range))
-        .collect()
-}
-
-const GET_OPTIONS_SH: &str = include_str!("get-options.sh");
-
-fn get_command_options(cmd: &str, word: &str) -> Vec<String> {
-    match std::process::Command::new("bash")
-        .args(["-c", GET_OPTIONS_SH, "--", cmd, word])
-        .output()
-    {
-        Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout)
-            .split('\t')
-            .map(|s| s.trim().to_string())
-            .filter(|s| !s.is_empty() && s.starts_with('-'))
-            .collect(),
-        _ => vec![],
-    }
-}
-
-fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<CompletionItem> {
-    let word = server
-        .analyser
-        .word_at_point(uri, pos.line, pos.character.saturating_sub(1));
-
-    if let Some(ref w) = word {
-        if w.starts_with('#') {
-            return vec![];
-        }
-        if w == "{" {
-            return vec![];
-        }
-        if w.starts_with('-') {
-            let cmd = server.analyser.command_name_at_point(
-                uri,
-                pos.line,
-                pos.character.saturating_sub(1),
-            );
-            if let Some(ref cmd_name) = cmd {
-                return get_command_options(cmd_name, w)
-                    .into_iter()
-                    .map(|opt| CompletionItem {
-                        label: opt,
-                        kind: Some(CompletionItemKind::CONSTANT),
-                        data: Some(json!({ "type": 3 })),
-                        ..Default::default()
-                    })
-                    .collect();
-            }
-            return vec![];
-        }
-    }
-
-    // Next-character guard: when no word at cursor, only complete if next char is space/EOL
-    if word.is_none()
-        && let Some(doc) = server.documents.get(uri)
-        && let Some(line_str) = doc.content.lines().nth(pos.line as usize)
-    {
-        match line_str.chars().nth(pos.character as usize) {
-            None | Some(' ') | Some('\t') => {}
-            _ => return vec![],
-        }
-    }
-
-    let should_complete_vars = word
-        .as_deref()
-        .is_some_and(|w| PARAMETER_EXPANSION_PREFIXES.contains(&w));
-
-    let symbol_completions = if word.is_none() {
-        vec![]
-    } else {
-        let syms = if should_complete_vars {
-            server.analyser.get_all_variables(uri, pos)
-        } else {
-            server.analyser.find_declarations_matching_word(
-                uri,
-                word.as_deref().unwrap_or(""),
-                Some(pos),
-                false,
-            )
-        };
-        deduplicate_symbols(syms, uri)
-            .into_iter()
-            .map(symbol_to_completion)
-            .collect::<Vec<_>>()
-    };
-
-    if should_complete_vars {
-        return symbol_completions;
-    }
-
-    let mut all: Vec<CompletionItem> = reserved_words::LIST
-        .iter()
-        .map(|w| CompletionItem {
-            label: w.to_string(),
-            kind: Some(CompletionItemKind::KEYWORD),
-            data: Some(json!({ "type": 2 })),
-            ..Default::default()
-        })
-        .chain(symbol_completions)
-        .chain(
-            server
-                .executables
-                .list()
-                .into_iter()
-                .filter(|e| !builtins::is_builtin(e))
-                .map(|e| CompletionItem {
-                    label: e.to_string(),
-                    kind: Some(CompletionItemKind::FUNCTION),
-                    data: Some(json!({ "type": 1 })),
-                    ..Default::default()
-                }),
-        )
-        .chain(builtins::LIST.iter().map(|b| CompletionItem {
-            label: b.to_string(),
-            kind: Some(CompletionItemKind::FUNCTION),
-            data: Some(json!({ "type": 0 })),
-            ..Default::default()
-        }))
-        .chain(get_snippets())
-        .collect();
-
-    if let Some(ref w) = word {
-        all.retain(|item| item.label.starts_with(w.as_str()));
-    }
-
-    all
-}
-
-fn handle_completion_resolve(mut item: CompletionItem) -> CompletionItem {
-    let data_type = item
-        .data
-        .as_ref()
-        .and_then(|d| d.get("type"))
-        .and_then(serde_json::Value::as_u64);
-
-    if let Some(0..=2) = data_type
-        && let Ok(Some(doc)) = get_shell_documentation(&item.label)
-    {
-        item.documentation = Some(lsp_types::Documentation::MarkupContent(MarkupContent {
-            kind: MarkupKind::Markdown,
-            value: format!("```man\n{doc}\n```"),
-        }));
-    }
-    item
-}
-
-fn handle_document_highlight(
-    server: &mut Server,
-    uri: &str,
-    pos: Position,
-) -> Vec<DocumentHighlight> {
-    let Some(word) = server.analyser.word_at_point(uri, pos.line, pos.character) else {
-        return vec![];
-    };
-    server
-        .analyser
-        .find_occurrences(uri, &word)
-        .into_iter()
-        .map(|l| DocumentHighlight {
-            range: l.range,
-            kind: None,
-        })
-        .collect()
-}
-
-fn handle_code_action(
-    server: &Server,
-    uri: &str,
-    diagnostics: &[Diagnostic],
-) -> Vec<CodeActionOrCommand> {
-    let Some(actions_for_uri) = server.code_actions.get(uri) else {
-        return vec![];
-    };
-    diagnostics
-        .iter()
-        .filter_map(|d| {
-            let id = d
-                .data
-                .as_ref()
-                .and_then(|v| v.get("id"))
-                .and_then(|v| v.as_str())
-                .map(std::string::ToString::to_string)?;
-            actions_for_uri
-                .get(&id)
-                .map(|a| CodeActionOrCommand::CodeAction(a.clone()))
-        })
-        .collect()
-}
-
-fn handle_prepare_rename(
-    server: &mut Server,
-    uri: &str,
-    pos: Position,
-) -> Option<lsp_types::PrepareRenameResponse> {
-    let (word, range, kind) = server
-        .analyser
-        .symbol_at_point(uri, pos.line, pos.character)?;
-    if kind == SymbolKind::VARIABLE
-        && (word == "_"
-            || !word
-                .chars()
-                .next()
-                .is_some_and(|c| c.is_alphabetic() || c == '_'))
-    {
-        return None;
-    }
-    Some(lsp_types::PrepareRenameResponse::Range(range))
-}
-
-fn handle_rename(
-    server: &mut Server,
-    uri: &str,
-    pos: Position,
-    new_name: &str,
-) -> Option<WorkspaceEdit> {
-    let (word, _range, kind) = server
-        .analyser
-        .symbol_at_point(uri, pos.line, pos.character)?;
-
-    if kind == SymbolKind::VARIABLE
-        && (new_name == "_"
-            || !new_name
-                .chars()
-                .next()
-                .is_some_and(|c| c.is_alphabetic() || c == '_'))
-    {
-        return None;
-    }
-    if kind == SymbolKind::FUNCTION && new_name.contains('$') {
-        return None;
-    }
-
-    let (declaration, parent) = server
-        .analyser
-        .find_original_declaration(uri, pos, &word, kind);
-
-    #[allow(clippy::mutable_key_type)]
-    let mut changes: HashMap<Uri, Vec<TextEdit>> = HashMap::new();
-
-    let make_edits = |ranges: Vec<lsp_types::Range>| -> Vec<TextEdit> {
-        ranges
-            .into_iter()
-            .map(|r| TextEdit {
-                range: r,
-                new_text: new_name.to_string(),
-            })
-            .collect()
-    };
-
-    if declaration.is_none() || parent.is_some() {
-        // Locally-scoped or unknown: rename within current file only, scoped to parent if known
-        let start = declaration.as_ref().map(|d| d.range.start);
-        let scope = parent.as_ref().map(|p| p.range);
-        let mut ranges = server
-            .analyser
-            .find_occurrences_within(uri, &word, kind, start, scope);
-        if ranges.is_empty() {
-            ranges = server
-                .analyser
-                .find_occurrences(uri, &word)
-                .into_iter()
-                .map(|l| l.range)
-                .collect();
-        }
-        let uri_key: Uri = uri.parse().ok()?;
-        changes.insert(uri_key, make_edits(ranges));
-    } else if let Some(decl) = declaration {
-        // Global declaration: rename in declaration file and all files that source it
-        let decl_uri_str = decl.uri.as_str().to_string();
-        let decl_start = Some(decl.range.start);
-
-        let ranges =
-            server
-                .analyser
-                .find_occurrences_within(&decl_uri_str, &word, kind, decl_start, None);
-        let decl_key: Uri = decl_uri_str.parse().ok()?;
-        changes.insert(decl_key, make_edits(ranges));
-
-        let linked = server.analyser.find_all_linked_uris(&decl_uri_str);
-        for linked_uri in linked {
-            let Ok(linked_key) = linked_uri.parse::<Uri>() else {
-                continue;
-            };
-            let ranges =
-                server
-                    .analyser
-                    .find_occurrences_within(&linked_uri, &word, kind, None, None);
-            if !ranges.is_empty() {
-                changes.insert(linked_key, make_edits(ranges));
-            }
-        }
-    }
-
-    Some(WorkspaceEdit {
-        changes: Some(changes),
-        ..Default::default()
-    })
-}
-
-fn handle_formatting(server: &mut Server, uri: &str, options: &FormattingOptions) -> Vec<TextEdit> {
-    let Some(ref mut formatter) = server.formatter else {
-        return vec![];
-    };
-    let Some(doc) = server.documents.get(uri) else {
-        return vec![];
-    };
-    let content = doc.content.clone();
-    let shfmt_config = server.config.shfmt.clone();
-    match formatter.format(uri, &content, Some(options), &shfmt_config) {
-        Ok(edits) => edits,
-        Err(e) => {
-            log::error!("Formatting error: {e}");
-            vec![]
-        }
-    }
-}
-
-fn deduplicate_symbols(
-    symbols: Vec<SymbolInformation>,
-    current_uri: &str,
-) -> Vec<SymbolInformation> {
-    let mut seen: HashSet<String> = HashSet::new();
-    let mut current_file: Vec<SymbolInformation> = Vec::new();
-    let mut other_files: Vec<SymbolInformation> = Vec::new();
-
-    for sym in symbols {
-        let id = format!("{}{:?}", sym.name, sym.kind);
-        let is_current = sym.location.uri.as_str() == current_uri;
-        if is_current {
-            if seen.insert(id) {
-                current_file.push(sym);
-            }
-        } else {
-            other_files.push(sym);
-        }
-    }
-
-    let mut result = current_file;
-    for sym in other_files {
-        let id = format!("{}{:?}", sym.name, sym.kind);
-        if seen.insert(id) {
-            result.push(sym);
-        }
-    }
-    result
-}
-
-fn symbol_to_completion(sym: SymbolInformation) -> CompletionItem {
-    let kind = match sym.kind {
-        SymbolKind::FUNCTION => Some(CompletionItemKind::FUNCTION),
-        SymbolKind::VARIABLE => Some(CompletionItemKind::VARIABLE),
-        _ => Some(CompletionItemKind::TEXT),
-    };
-    CompletionItem {
-        label: sym.name,
-        kind,
-        data: Some(json!({ "type": 3 })),
-        ..Default::default()
-    }
-}
-
-fn get_symbol_documentation(
-    analyser: &Analyser,
-    current_uri: &str,
-    sym: &SymbolInformation,
-) -> MarkupContent {
-    let sym_uri = sym.location.uri.as_str();
-    let kind_str = match sym.kind {
-        SymbolKind::FUNCTION => "Function",
-        SymbolKind::VARIABLE => "Variable",
-        _ => "Symbol",
-    };
-    let comment = analyser.comments_above(sym_uri, sym.location.range.start.line);
-    let comment_str = comment.map(|c| format!("\n\n{c}")).unwrap_or_default();
-    let location_str = if sym_uri == current_uri {
-        format!("on line {}", sym.location.range.start.line + 1)
-    } else {
-        let sym_path = uri_to_path_opt(sym_uri)
-            .map_or_else(|| sym_uri.to_string(), |p| p.to_string_lossy().into_owned());
-        let cur_dir = uri_to_path_opt(current_uri)
-            .and_then(|p| p.parent().map(|d| d.to_string_lossy().into_owned()))
-            .unwrap_or_default();
-        let rel = make_relative(&sym_path, &cur_dir);
-        format!("in {rel}")
-    };
-    MarkupContent {
-        kind: MarkupKind::Markdown,
-        value: format!(
-            "{}: **{}** - *defined {}*{}",
-            kind_str, sym.name, location_str, comment_str
-        ),
-    }
-}
-
-fn make_relative(target: &str, base_dir: &str) -> String {
-    if let (Ok(t), Ok(b)) = (
-        std::path::Path::new(target).canonicalize(),
-        std::path::Path::new(base_dir).canonicalize(),
-    ) && let Ok(rel) = t.strip_prefix(&b)
-    {
-        return rel.to_string_lossy().into_owned();
-    }
-    target.to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::config::ShfmtConfig;
     use crate::executables::Executables;
     use crate::parser::create_parser;
+    use serde_json::json;
 
     const URI: &str = "file:///test.sh";
 
@@ -1099,7 +614,7 @@ mod tests {
     fn hover_over_function_returns_documentation() {
         let content = "myfunc() { echo hi; }\nmyfunc\n";
         let mut server = make_server(content);
-        let result = handle_hover(&mut server, URI, Position::new(1, 1));
+        let result = handle_hover(&mut server, URI, lsp_types::Position::new(1, 1));
         assert!(
             result.is_some(),
             "hover on function call should return docs"
@@ -1117,7 +632,7 @@ mod tests {
     fn hover_over_builtin_returns_man_doc() {
         let content = "echo hello\n";
         let mut server = make_server(content);
-        let result = handle_hover(&mut server, URI, Position::new(0, 0));
+        let result = handle_hover(&mut server, URI, lsp_types::Position::new(0, 0));
         assert!(
             result.is_some(),
             "hover on 'echo' should return documentation"
@@ -1128,7 +643,7 @@ mod tests {
     fn hover_over_comment_returns_none() {
         let content = "# this is a comment\necho hi\n";
         let mut server = make_server(content);
-        let result = handle_hover(&mut server, URI, Position::new(0, 2));
+        let result = handle_hover(&mut server, URI, lsp_types::Position::new(0, 2));
         assert!(result.is_none(), "hover on comment should return None");
     }
 
@@ -1138,7 +653,7 @@ mod tests {
     fn definition_resolves_function_call() {
         let content = "greet() { echo hello; }\ngreet\n";
         let mut server = make_server(content);
-        let result = handle_goto_definition(&mut server, URI, Position::new(1, 0));
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 0));
         assert!(
             result.is_some(),
             "definition should resolve for function call"
@@ -1151,7 +666,7 @@ mod tests {
     fn definition_resolves_variable() {
         let content = "myvar=hello\necho \"$myvar\"\n";
         let mut server = make_server(content);
-        let result = handle_goto_definition(&mut server, URI, Position::new(1, 7));
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 7));
         assert!(
             result.is_some(),
             "definition should resolve for variable reference"
@@ -1164,7 +679,7 @@ mod tests {
     fn definition_at_whitespace_returns_none() {
         let content = "echo hi\n";
         let mut server = make_server(content);
-        let result = handle_goto_definition(&mut server, URI, Position::new(0, 4));
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(0, 4));
         assert!(result.is_none() || result.is_some());
     }
 
@@ -1174,7 +689,7 @@ mod tests {
     fn references_finds_all_occurrences() {
         let content = "myvar=1\necho $myvar\nmyvar=2\n";
         let mut server = make_server(content);
-        let result = handle_references(&mut server, URI, Position::new(0, 0), true);
+        let result = handle_references(&mut server, URI, lsp_types::Position::new(0, 0), true);
         assert_eq!(result.len(), 3, "should find 3 occurrences of myvar");
     }
 
@@ -1182,8 +697,9 @@ mod tests {
     fn references_exclude_declaration_when_flag_false() {
         let content = "myvar=1\necho $myvar\n";
         let mut server = make_server(content);
-        let all = handle_references(&mut server, URI, Position::new(0, 0), true);
-        let no_decl = handle_references(&mut server, URI, Position::new(0, 0), false);
+        let all = handle_references(&mut server, URI, lsp_types::Position::new(0, 0), true);
+        let no_decl =
+            handle_references(&mut server, URI, lsp_types::Position::new(0, 0), false);
         assert!(
             no_decl.len() < all.len(),
             "excluding declaration should reduce count"
@@ -1196,7 +712,8 @@ mod tests {
     fn document_highlight_returns_all_occurrences() {
         let content = "myvar=1\necho $myvar\nmyvar=2\n";
         let mut server = make_server(content);
-        let result = handle_document_highlight(&mut server, URI, Position::new(0, 0));
+        let result =
+            handle_document_highlight(&mut server, URI, lsp_types::Position::new(0, 0));
         assert_eq!(result.len(), 3, "highlight should cover all occurrences");
     }
 
@@ -1204,7 +721,8 @@ mod tests {
     fn document_highlight_empty_for_whitespace() {
         let content = "echo hi\n";
         let mut server = make_server(content);
-        let result = handle_document_highlight(&mut server, URI, Position::new(0, 4));
+        let result =
+            handle_document_highlight(&mut server, URI, lsp_types::Position::new(0, 4));
         assert!(result.is_empty() || !result.is_empty());
     }
 
@@ -1214,7 +732,7 @@ mod tests {
     fn completion_returns_symbols_matching_prefix() {
         let content = "myfunc() { echo hi; }\nmyvar=1\nmy\n";
         let mut server = make_server(content);
-        let result = handle_completion(&mut server, URI, Position::new(2, 2));
+        let result = handle_completion(&mut server, URI, lsp_types::Position::new(2, 2));
         let labels: Vec<&str> = result.iter().map(|c| c.label.as_str()).collect();
         assert!(
             labels.contains(&"myfunc") || labels.contains(&"myvar"),
@@ -1227,7 +745,7 @@ mod tests {
     fn completion_on_comment_returns_empty() {
         let content = "# comment\n";
         let mut server = make_server(content);
-        let result = handle_completion(&mut server, URI, Position::new(0, 3));
+        let result = handle_completion(&mut server, URI, lsp_types::Position::new(0, 3));
         assert!(result.is_empty(), "completion on comment should be empty");
     }
 
@@ -1235,7 +753,7 @@ mod tests {
     fn completion_dollar_returns_variables() {
         let content = "myvar=1\n$\n";
         let mut server = make_server(content);
-        let result = handle_completion(&mut server, URI, Position::new(1, 1));
+        let result = handle_completion(&mut server, URI, lsp_types::Position::new(1, 1));
         let labels: Vec<&str> = result.iter().map(|c| c.label.as_str()).collect();
         assert!(
             labels.contains(&"myvar"),
@@ -1250,7 +768,7 @@ mod tests {
     fn prepare_rename_returns_range_for_function() {
         let content = "myfunc() { echo hi; }\nmyfunc\n";
         let mut server = make_server(content);
-        let result = handle_prepare_rename(&mut server, URI, Position::new(1, 0));
+        let result = handle_prepare_rename(&mut server, URI, lsp_types::Position::new(1, 0));
         assert!(
             result.is_some(),
             "prepare rename should succeed for function"
@@ -1261,7 +779,7 @@ mod tests {
     fn prepare_rename_returns_none_for_whitespace() {
         let content = "echo hi\n";
         let mut server = make_server(content);
-        let result = handle_prepare_rename(&mut server, URI, Position::new(0, 4));
+        let result = handle_prepare_rename(&mut server, URI, lsp_types::Position::new(0, 4));
         assert!(result.is_none() || result.is_some());
     }
 
@@ -1271,7 +789,7 @@ mod tests {
     fn rename_function_produces_workspace_edit() {
         let content = "myfunc() { echo hi; }\nmyfunc\n";
         let mut server = make_server(content);
-        let result = handle_rename(&mut server, URI, Position::new(1, 0), "renamed_func");
+        let result = handle_rename(&mut server, URI, lsp_types::Position::new(1, 0), "renamed_func");
         assert!(result.is_some(), "rename should produce a WorkspaceEdit");
         let edit = result.unwrap();
         let changes = edit.changes.unwrap();
@@ -1286,7 +804,7 @@ mod tests {
     fn rename_variable_produces_edit_for_all_occurrences() {
         let content = "myvar=1\necho $myvar\nmyvar=2\n";
         let mut server = make_server(content);
-        let result = handle_rename(&mut server, URI, Position::new(0, 0), "newvar");
+        let result = handle_rename(&mut server, URI, lsp_types::Position::new(0, 0), "newvar");
         assert!(result.is_some());
         let edit = result.unwrap();
         let changes = edit.changes.unwrap();
@@ -1301,7 +819,7 @@ mod tests {
         let content = "echo hi\n";
         let mut server = make_server(content);
         server.formatter = None;
-        let opts = FormattingOptions {
+        let opts = lsp_types::FormattingOptions {
             tab_size: 2,
             insert_spaces: true,
             ..Default::default()
@@ -1319,7 +837,7 @@ mod tests {
             ..Default::default()
         };
         server.formatter = Some(Formatter::new("/usr/bin/shfmt".to_string()));
-        let opts = FormattingOptions {
+        let opts = lsp_types::FormattingOptions {
             tab_size: 4,
             insert_spaces: true,
             ..Default::default()
@@ -1363,20 +881,20 @@ mod tests {
 
         let diag = Diagnostic {
             range: Range {
-                start: Position::new(0, 5),
-                end: Position::new(0, 9),
+                start: lsp_types::Position::new(0, 5),
+                end: lsp_types::Position::new(0, 9),
             },
             severity: Some(DiagnosticSeverity::WARNING),
             code: Some(NumberOrString::String("SC2086".to_string())),
             source: Some("shellcheck".to_string()),
             message: "Double quote".to_string(),
-            data: Some(serde_json::json!({ "id": diag_id })),
+            data: Some(json!({ "id": diag_id })),
             ..Default::default()
         };
 
         let result = handle_code_action(&server, URI, &[diag]);
         assert_eq!(result.len(), 1, "should return one code action");
-        if let CodeActionOrCommand::CodeAction(a) = &result[0] {
+        if let lsp_types::CodeActionOrCommand::CodeAction(a) = &result[0] {
             assert_eq!(a.title, "Apply fix for SC2086");
         }
     }
