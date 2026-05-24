@@ -31,15 +31,15 @@ Diagnostics and formatting require additional tools:
 - [shellcheck](https://github.com/koalaman/shellcheck) — diagnostics
 - [shfmt](https://github.com/mvdan/sh) — formatting
 
-### Via cargo
+#### Via cargo
 ```
 cargo install bashls
 ```
 
-### Pre-built binary
+#### Pre-built binary
 Download for your platform from the [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
 
-### From source
+#### From source
 ```
 git clone https://github.com/k8s-1/bashls
 cd bashls
