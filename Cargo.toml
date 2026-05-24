@@ -1,11 +1,11 @@
 [package]
-name = "bls"
+name = "bashls"
 version = "0.1.0"
 edition = "2024"
 description = "A Rust implementation of bash-language-server"
 license = "MIT"
-repository = "https://github.com/k8s-1/bls"
-homepage = "https://github.com/k8s-1/bls"
+repository = "https://github.com/k8s-1/bashls"
+homepage = "https://github.com/k8s-1/bashls"
 keywords = ["bash", "lsp", "language-server", "shell"]
 categories = ["development-tools"]
 exclude = ["tests/", ".github/", "assets/", "CLAUDE.md", "justfile"]

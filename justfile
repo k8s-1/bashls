@@ -43,9 +43,9 @@ ci: fmt-check lint audit test
 # benchmark startup time and memory
 bench:
     @echo "=== Startup time ==="
-    hyperfine --warmup 3 -i 'echo "{}" | ./target/release/bls start'
+    hyperfine --warmup 3 -i 'echo "{}" | ./target/release/bashls start'
     @echo "=== Memory (RSS) ==="
-    /usr/bin/time -v bash -c 'echo "{}" | ./target/release/bls start' 2>&1 | grep "Maximum resident"
+    /usr/bin/time -v bash -c 'echo "{}" | ./target/release/bashls start' 2>&1 | grep "Maximum resident"
 
 # publish to crates.io
 publish: ci build

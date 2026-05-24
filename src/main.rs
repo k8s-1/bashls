@@ -3,16 +3,16 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     match args.get(1).map(String::as_str) {
         Some("start") | None => {
-            if let Err(e) = bls::server::run() {
+            if let Err(e) = bashls::server::run() {
                 eprintln!("Error: {e}");
                 std::process::exit(1);
             }
         }
         Some("--version") => {
-            println!("bls {}", env!("CARGO_PKG_VERSION"));
+            println!("bashls {}", env!("CARGO_PKG_VERSION"));
         }
         Some("--help") => {
-            println!("Usage: bls [start|--version|--help]");
+            println!("Usage: bashls [start|--version|--help]");
         }
         _ => {
             eprintln!("Unknown command");

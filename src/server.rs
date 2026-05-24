@@ -45,7 +45,7 @@ fn check_runtime_deps() {
         .map(|o| o.status.success())
         .unwrap_or(false);
     if !bash_ok {
-        eprintln!("bls: warning: bash not found — option completions unavailable");
+        eprintln!("bashls: warning: bash not found — option completions unavailable");
         return;
     }
 
@@ -60,7 +60,7 @@ fn check_runtime_deps() {
         .map(|o| o.status.success())
         .unwrap_or(false);
     if !completion_ok {
-        eprintln!("bls: warning: bash-completion not found — option completions unavailable");
+        eprintln!("bashls: warning: bash-completion not found — option completions unavailable");
     }
 
     let shellcheck_ok = std::process::Command::new("shellcheck")
@@ -69,7 +69,7 @@ fn check_runtime_deps() {
         .map(|o| o.status.success())
         .unwrap_or(false);
     if !shellcheck_ok {
-        eprintln!("bls: warning: shellcheck not found — diagnostics unavailable");
+        eprintln!("bashls: warning: shellcheck not found — diagnostics unavailable");
     }
 
     let shfmt_ok = std::process::Command::new("shfmt")
@@ -78,7 +78,7 @@ fn check_runtime_deps() {
         .map(|o| o.status.success())
         .unwrap_or(false);
     if !shfmt_ok {
-        eprintln!("bls: warning: shfmt not found — formatting unavailable");
+        eprintln!("bashls: warning: shfmt not found — formatting unavailable");
     }
 }
 
