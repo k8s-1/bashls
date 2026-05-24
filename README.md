@@ -65,12 +65,14 @@ vim.lsp.enable('bashls')
 
 Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`, `bashIde.logLevel` → `BASH_IDE_LOG_LEVEL`).
 
-- `shellcheckPath` (default: `shellcheck`) — path to shellcheck binary; set to empty string to disable
-- `shellcheckArguments` (default: `[]`) — additional arguments passed to [shellcheck](https://github.com/koalaman/shellcheck)
-- `shfmt.path` (default: `shfmt`) — path to shfmt binary; set to empty string to disable
-- `shfmt.*` — see [shfmt](https://github.com/mvdan/sh) for remaining formatting options
-- `globPattern` (default: `*.sh, *.bash, *.inc, *.command`) — files the server treats as bash
-- `backgroundAnalysisMaxFiles` (default: `500`) — max files to analyse in background for workspace-wide features
-- `includeAllWorkspaceSymbols` (default: `false`) — return functions and variables from all workspace files in symbol search, not just open files
-- `enableSourceErrorDiagnostics` (default: `false`) — show diagnostics when a `source`/`.` command cannot be resolved
-- `logLevel` (default: `info`)
+| Setting (`bashIde.*`) | Default | Description |
+|---|---|---|
+| `shellcheckPath` | `shellcheck` | Path to shellcheck binary. Set to empty string to disable. |
+| `shellcheckArguments` | `[]` | Additional arguments passed to [shellcheck](https://github.com/koalaman/shellcheck). |
+| `shfmt.path` | `shfmt` | Path to shfmt binary. Set to empty string to disable. |
+| `shfmt.*` | | See [shfmt](https://github.com/mvdan/sh) for remaining options. |
+| `globPattern` | `*.sh, *.bash, *.inc, *.command` | Files the server treats as bash. |
+| `backgroundAnalysisMaxFiles` | `500` | Max files to analyse in background for workspace-wide features. |
+| `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
+| `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
+| `logLevel` | `info` | Log level. |
