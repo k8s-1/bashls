@@ -5,17 +5,17 @@ pub mod hover;
 pub mod navigation;
 pub mod rename;
 
-pub(crate) use code_action::handle_code_action;
-pub(crate) use completion::{handle_completion, handle_completion_resolve};
-pub(crate) use formatting::handle_formatting;
-pub(crate) use hover::handle_hover;
-pub(crate) use navigation::{handle_document_highlight, handle_goto_definition, handle_references};
-pub(crate) use rename::{handle_prepare_rename, handle_rename};
+pub use code_action::handle_code_action;
+pub use completion::{handle_completion, handle_completion_resolve};
+pub use formatting::handle_formatting;
+pub use hover::handle_hover;
+pub use navigation::{handle_document_highlight, handle_goto_definition, handle_references};
+pub use rename::{handle_prepare_rename, handle_rename};
 
 use lsp_types::SymbolInformation;
 use std::collections::HashSet;
 
-pub(crate) fn deduplicate_symbols(
+pub fn deduplicate_symbols(
     symbols: Vec<SymbolInformation>,
     current_uri: &str,
 ) -> Vec<SymbolInformation> {

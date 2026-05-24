@@ -2,7 +2,7 @@ use crate::server::Server;
 use crate::util::lsp::is_position_in_range;
 use lsp_types::{DocumentHighlight, Location, Position};
 
-pub(crate) fn handle_goto_definition(
+pub fn handle_goto_definition(
     server: &mut Server,
     uri: &str,
     pos: Position,
@@ -12,7 +12,7 @@ pub(crate) fn handle_goto_definition(
     if locs.is_empty() { None } else { Some(locs) }
 }
 
-pub(crate) fn handle_references(
+pub fn handle_references(
     server: &mut Server,
     uri: &str,
     pos: Position,
@@ -29,7 +29,7 @@ pub(crate) fn handle_references(
         .collect()
 }
 
-pub(crate) fn handle_document_highlight(
+pub fn handle_document_highlight(
     server: &mut Server,
     uri: &str,
     pos: Position,

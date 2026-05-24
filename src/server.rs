@@ -165,25 +165,25 @@ fn server_capabilities() -> ServerCapabilities {
     }
 }
 
-pub(crate) struct DocumentState {
-    pub(crate) content: String,
-    pub(crate) version: i32,
+pub struct DocumentState {
+    pub content: String,
+    pub version: i32,
 }
 
-pub(crate) struct Server {
-    pub(crate) analyser: Analyser,
-    pub(crate) config: Config,
-    pub(crate) executables: Executables,
-    pub(crate) linter: Option<Linter>,
-    pub(crate) formatter: Option<Formatter>,
-    pub(crate) workspace_folder: Option<String>,
-    pub(crate) documents: HashMap<String, DocumentState>,
-    pub(crate) code_actions: HashMap<String, HashMap<String, CodeAction>>,
-    pub(crate) initialized: bool,
-    pub(crate) current_document: Option<String>,
-    pub(crate) client_capabilities: lsp_types::ClientCapabilities,
-    pub(crate) pending_config_request_id: Option<lsp_server::RequestId>,
-    pub(crate) next_request_id: i32,
+pub struct Server {
+    pub analyser: Analyser,
+    pub config: Config,
+    pub executables: Executables,
+    pub linter: Option<Linter>,
+    pub formatter: Option<Formatter>,
+    pub workspace_folder: Option<String>,
+    pub documents: HashMap<String, DocumentState>,
+    pub code_actions: HashMap<String, HashMap<String, CodeAction>>,
+    pub initialized: bool,
+    pub current_document: Option<String>,
+    pub client_capabilities: lsp_types::ClientCapabilities,
+    pub pending_config_request_id: Option<lsp_server::RequestId>,
+    pub next_request_id: i32,
 }
 
 impl Server {

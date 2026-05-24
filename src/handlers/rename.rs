@@ -2,7 +2,7 @@ use crate::server::Server;
 use lsp_types::{Position, SymbolKind, TextEdit, Uri, WorkspaceEdit};
 use std::collections::HashMap;
 
-pub(crate) fn handle_prepare_rename(
+pub fn handle_prepare_rename(
     server: &mut Server,
     uri: &str,
     pos: Position,
@@ -20,7 +20,7 @@ pub(crate) fn handle_prepare_rename(
     Some(lsp_types::PrepareRenameResponse::Range(range))
 }
 
-pub(crate) fn handle_rename(
+pub fn handle_rename(
     server: &mut Server,
     uri: &str,
     pos: Position,

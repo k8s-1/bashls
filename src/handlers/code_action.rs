@@ -1,7 +1,7 @@
 use crate::server::Server;
 use lsp_types::{CodeActionOrCommand, Diagnostic};
 
-pub(crate) fn handle_code_action(
+pub fn handle_code_action(
     server: &Server,
     uri: &str,
     diagnostics: &[Diagnostic],

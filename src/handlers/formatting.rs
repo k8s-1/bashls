@@ -1,7 +1,7 @@
 use crate::server::Server;
 use lsp_types::{FormattingOptions, TextEdit};
 
-pub(crate) fn handle_formatting(
+pub fn handle_formatting(
     server: &mut Server,
     uri: &str,
     options: &FormattingOptions,

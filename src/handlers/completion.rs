@@ -10,7 +10,7 @@ use super::deduplicate_symbols;
 
 const PARAMETER_EXPANSION_PREFIXES: &[&str] = &["$", "${"];
 
-pub(crate) fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<CompletionItem> {
+pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<CompletionItem> {
     let word = server
         .analyser
         .word_at_point(uri, pos.line, pos.character.saturating_sub(1));
@@ -119,7 +119,7 @@ pub(crate) fn handle_completion(server: &mut Server, uri: &str, pos: Position) -
     all
 }
 
-pub(crate) fn handle_completion_resolve(mut item: CompletionItem) -> CompletionItem {
+pub fn handle_completion_resolve(mut item: CompletionItem) -> CompletionItem {
     let data_type = item
         .data
         .as_ref()
@@ -139,7 +139,7 @@ pub(crate) fn handle_completion_resolve(mut item: CompletionItem) -> CompletionI
     item
 }
 
-pub(crate) fn symbol_to_completion(sym: SymbolInformation) -> CompletionItem {
+pub fn symbol_to_completion(sym: SymbolInformation) -> CompletionItem {
     let kind = match sym.kind {
         SymbolKind::FUNCTION => Some(CompletionItemKind::FUNCTION),
         SymbolKind::VARIABLE => Some(CompletionItemKind::VARIABLE),
