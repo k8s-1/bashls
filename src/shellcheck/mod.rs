@@ -31,10 +31,22 @@ pub struct LintingResult {
 impl Linter {
     #[must_use]
     pub fn new(executable_path: String, external_sources: bool) -> Self {
+        let can_lint = match Command::new(&executable_path)
+            .arg("--version")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .output()
+        {
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                log::warn!("ShellCheck: executable not found at '{executable_path}', linting disabled");
+                false
+            }
+            _ => true,
+        };
         Self {
             executable_path,
             external_sources,
-            can_lint: true,
+            can_lint,
         }
     }
 
@@ -80,15 +92,7 @@ impl Linter {
         ) {
             Ok(result) => map_shellcheck_result(uri, result),
             Err(e) => {
-                if e.contains("ENOENT") || e.contains("No such file") {
-                    log::warn!(
-                        "ShellCheck: disabling linting, executable not found at '{}'",
-                        self.executable_path
-                    );
-                    self.can_lint = false;
-                } else {
-                    log::error!("ShellCheck error: {e}");
-                }
+                log::error!("ShellCheck error: {e}");
                 LintingResult::default()
             }
         }
@@ -130,7 +134,7 @@ impl Linter {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(|e| format!("ENOENT: {e}"))?;
+            .map_err(|e| e.to_string())?;
 
         if let Some(mut stdin) = proc.stdin.take() {
             let _ = stdin.write_all(content.as_bytes());

@@ -14,9 +14,21 @@ pub struct Formatter {
 impl Formatter {
     #[must_use]
     pub fn new(executable_path: String) -> Self {
+        let can_format = match Command::new(&executable_path)
+            .arg("--version")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .output()
+        {
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                log::warn!("Shfmt: executable not found at '{executable_path}', formatting disabled");
+                false
+            }
+            _ => true,
+        };
         Self {
             executable_path,
-            can_format: true,
+            can_format,
         }
     }
 
@@ -52,14 +64,7 @@ impl Formatter {
                     new_text: formatted,
                 }])
             }
-            Err(e) => {
-                if e.to_string().contains("ENOENT") || e.to_string().contains("No such file") {
-                    log::warn!("Shfmt: disabling formatting, executable not found");
-                    self.can_format = false;
-                    return Ok(vec![]);
-                }
-                Err(e)
-            }
+            Err(e) => Err(e),
         }
     }
 
@@ -75,7 +80,7 @@ impl Formatter {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(|e| anyhow!("ENOENT: {e}"))?;
+            .map_err(|e| anyhow!(e))?;
 
         if let Some(mut stdin) = proc.stdin.take() {
             stdin.write_all(content.as_bytes())?;
