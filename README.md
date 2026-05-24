@@ -31,13 +31,13 @@ Diagnostics and formatting require additional tools:
 - [shellcheck](https://github.com/koalaman/shellcheck)
 - [shfmt](https://github.com/mvdan/sh)
 
+#### Pre-built binary
+Download for your platform from the [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
+
 #### Via cargo
 ```
 cargo install bashls
 ```
-
-#### Pre-built binary
-Download for your platform from the [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
 
 #### From source
 ```
