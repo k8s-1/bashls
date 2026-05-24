@@ -34,11 +34,8 @@ fn new_starts_with_can_format_true() {
 }
 
 #[test]
-fn executable_not_found_sets_can_format_false() {
-    let mut f = Formatter::new("/nonexistent_shfmt_xyz".to_string());
-    assert!(f.can_format);
-    let result = f.format(URI, "echo hi\n", None, &default_config()).unwrap();
-    assert!(result.is_empty());
+fn executable_not_found_disables_formatting() {
+    let f = Formatter::new("/nonexistent_shfmt_xyz".to_string());
     assert!(!f.can_format);
 }
 

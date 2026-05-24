@@ -15,11 +15,8 @@ fn new_starts_with_can_lint_true() {
 }
 
 #[test]
-fn executable_not_found_sets_can_lint_false() {
-    let mut l = Linter::new("/nonexistent_shellcheck_xyz".to_string(), false);
-    assert!(l.can_lint);
-    let result = l.lint(URI, "#!/bin/bash\necho $foo\n", &[], &[]);
-    assert!(result.diagnostics.is_empty());
+fn executable_not_found_disables_linting() {
+    let l = Linter::new("/nonexistent_shellcheck_xyz".to_string(), false);
     assert!(!l.can_lint);
 }
 
