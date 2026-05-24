@@ -576,7 +576,10 @@ mod tests {
         let content = "if true; then\n  inside=1\nfi\n";
         let (tree, uri) = parse(content);
         let decls = get_global_declarations(&tree, &uri, content.as_bytes());
-        assert!(!decls.contains_key("inside"), "var inside if should not be global");
+        assert!(
+            !decls.contains_key("inside"),
+            "var inside if should not be global"
+        );
     }
 
     #[test]
@@ -584,7 +587,10 @@ mod tests {
         let content = "myfunc() { local x=1; }\n";
         let (tree, uri) = parse(content);
         let decls = get_global_declarations(&tree, &uri, content.as_bytes());
-        assert!(!decls.contains_key("x"), "var inside function should not be global");
+        assert!(
+            !decls.contains_key("x"),
+            "var inside function should not be global"
+        );
         assert!(decls.contains_key("myfunc"));
     }
 
