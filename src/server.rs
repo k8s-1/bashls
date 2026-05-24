@@ -37,8 +37,7 @@ fn check_runtime_deps() {
     let bash_ok = std::process::Command::new("bash")
         .arg("--version")
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+        .is_ok_and(|o| o.status.success());
     if !bash_ok {
         eprintln!("bashls: warning: bash not found — option completions unavailable");
         return;
@@ -52,8 +51,7 @@ fn check_runtime_deps() {
                       pkg-config --variable=completionsdir bash-completion 2>/dev/null",
         ])
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+        .is_ok_and(|o| o.status.success());
     if !completion_ok {
         eprintln!("bashls: warning: bash-completion not found — option completions unavailable");
     }
@@ -61,8 +59,7 @@ fn check_runtime_deps() {
     let shellcheck_ok = std::process::Command::new("shellcheck")
         .arg("--version")
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+        .is_ok_and(|o| o.status.success());
     if !shellcheck_ok {
         eprintln!("bashls: warning: shellcheck not found — diagnostics unavailable");
     }
@@ -70,8 +67,7 @@ fn check_runtime_deps() {
     let shfmt_ok = std::process::Command::new("shfmt")
         .arg("--version")
         .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
+        .is_ok_and(|o| o.status.success());
     if !shfmt_ok {
         eprintln!("bashls: warning: shfmt not found — formatting unavailable");
     }
@@ -100,7 +96,7 @@ pub fn run() -> Result<()> {
 
     let config = Config::from_env();
 
-    let client_capabilities = init_params.capabilities.clone();
+    let client_capabilities = init_params.capabilities;
 
     let mut server = Server {
         analyser,
@@ -117,7 +113,7 @@ pub fn run() -> Result<()> {
         formatter: if config.shfmt.path.is_empty() {
             None
         } else {
-            Some(Formatter::new(config.shfmt.path.clone()))
+            Some(Formatter::new(config.shfmt.path))
         },
         workspace_folder,
         documents: HashMap::new(),
@@ -385,7 +381,11 @@ fn handle_request(connection: &Connection, server: &mut Server, req: Request) ->
         CodeActionRequest::METHOD => {
             let params: lsp_types::CodeActionParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
-            respond!(handle_code_action(server, &uri, &params.context.diagnostics));
+            respond!(handle_code_action(
+                server,
+                &uri,
+                &params.context.diagnostics
+            ));
         }
         PrepareRenameRequest::METHOD => {
             let params: lsp_types::TextDocumentPositionParams = serde_json::from_value(req.params)?;
@@ -698,8 +698,7 @@ mod tests {
         let content = "myvar=1\necho $myvar\n";
         let mut server = make_server(content);
         let all = handle_references(&mut server, URI, lsp_types::Position::new(0, 0), true);
-        let no_decl =
-            handle_references(&mut server, URI, lsp_types::Position::new(0, 0), false);
+        let no_decl = handle_references(&mut server, URI, lsp_types::Position::new(0, 0), false);
         assert!(
             no_decl.len() < all.len(),
             "excluding declaration should reduce count"
@@ -712,8 +711,7 @@ mod tests {
     fn document_highlight_returns_all_occurrences() {
         let content = "myvar=1\necho $myvar\nmyvar=2\n";
         let mut server = make_server(content);
-        let result =
-            handle_document_highlight(&mut server, URI, lsp_types::Position::new(0, 0));
+        let result = handle_document_highlight(&mut server, URI, lsp_types::Position::new(0, 0));
         assert_eq!(result.len(), 3, "highlight should cover all occurrences");
     }
 
@@ -721,8 +719,7 @@ mod tests {
     fn document_highlight_empty_for_whitespace() {
         let content = "echo hi\n";
         let mut server = make_server(content);
-        let result =
-            handle_document_highlight(&mut server, URI, lsp_types::Position::new(0, 4));
+        let result = handle_document_highlight(&mut server, URI, lsp_types::Position::new(0, 4));
         assert!(result.is_empty() || !result.is_empty());
     }
 
@@ -789,7 +786,12 @@ mod tests {
     fn rename_function_produces_workspace_edit() {
         let content = "myfunc() { echo hi; }\nmyfunc\n";
         let mut server = make_server(content);
-        let result = handle_rename(&mut server, URI, lsp_types::Position::new(1, 0), "renamed_func");
+        let result = handle_rename(
+            &mut server,
+            URI,
+            lsp_types::Position::new(1, 0),
+            "renamed_func",
+        );
         assert!(result.is_some(), "rename should produce a WorkspaceEdit");
         let edit = result.unwrap();
         let changes = edit.changes.unwrap();

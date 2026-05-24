@@ -45,11 +45,11 @@ impl Analyser {
         }
     }
 
-    pub fn set_enable_source_error_diagnostics(&mut self, v: bool) {
+    pub const fn set_enable_source_error_diagnostics(&mut self, v: bool) {
         self.enable_source_error_diagnostics = v;
     }
 
-    pub fn set_include_all_workspace_symbols(&mut self, v: bool) {
+    pub const fn set_include_all_workspace_symbols(&mut self, v: bool) {
         self.include_all_workspace_symbols = v;
     }
 
@@ -373,9 +373,9 @@ impl Analyser {
         let sourced = self.find_all_sourced_uris(from_uri);
         let mut ordered: Vec<String> = sourced.clone();
 
-        for u1 in &sourced {
-            for u2 in self.find_all_sourced_uris(u1) {
-                if let Some(pos) = ordered.iter().position(|u| *u == u2) {
+        for direct_uri in &sourced {
+            for transitive_uri in self.find_all_sourced_uris(direct_uri) {
+                if let Some(pos) = ordered.iter().position(|u| *u == transitive_uri) {
                     let item = ordered.remove(pos);
                     ordered.push(item);
                 }
@@ -429,93 +429,95 @@ impl Analyser {
         let mut boundary = position.line as usize;
         let mut decl_range: Option<Range> = None;
         let mut continue_searching = false;
-        let mut found_parent: Option<Range> = None;
-        let mut found_in_parent = false;
+        let mut containing_scope_range: Option<Range> = None;
+        let mut found_in_scope = false;
 
-        let mut cur_parent = find_parent(node, |p| {
+        let mut cur_scope = find_parent(node, |p| {
             matches!(p.kind(), "function_definition" | "subshell")
         });
 
-        while let Some(p) = cur_parent {
-            let (d, cont) = if kind == SymbolKind::VARIABLE && p.kind() == "function_definition" {
-                let count = p.child_count();
-                let body = if count > 0 {
-                    p.child((count - 1) as u32)
-                } else {
-                    None
-                };
-                if let Some(b) = body {
-                    find_declaration_using_local_semantics(b, source, word, position, &mut boundary)
+        while let Some(scope) = cur_scope {
+            let (found_range, keep_searching) =
+                if kind == SymbolKind::VARIABLE && scope.kind() == "function_definition" {
+                    let mut walker = scope.walk();
+                    let func_body = scope.children(&mut walker).last();
+                    func_body.map_or((None, false), |func_body| {
+                        find_declaration_using_local_semantics(
+                            func_body,
+                            source,
+                            word,
+                            position,
+                            &mut boundary,
+                        )
+                    })
+                } else if scope.kind() == "subshell" {
+                    find_declaration_using_global_semantics(
+                        scope,
+                        source,
+                        word,
+                        kind,
+                        uri,
+                        uri,
+                        position,
+                        &mut boundary,
+                    )
                 } else {
                     (None, false)
-                }
-            } else if p.kind() == "subshell" {
-                find_declaration_using_global_semantics(
-                    p,
-                    source,
-                    word,
-                    kind,
-                    uri,
-                    uri,
-                    position,
-                    &mut boundary,
-                )
-            } else {
-                (None, false)
-            };
+                };
 
-            if d.is_some() {
-                if cont {
-                    decl_range = d;
+            if found_range.is_some() {
+                decl_range = found_range;
+                if keep_searching {
                     continue_searching = true;
                 } else {
-                    decl_range = d;
-                    found_parent = Some(node_range(p));
-                    found_in_parent = true;
+                    containing_scope_range = Some(node_range(scope));
+                    found_in_scope = true;
                     break;
                 }
             }
 
-            boundary = p.start_position().row;
-            cur_parent = find_parent(p, |pp| {
-                matches!(pp.kind(), "function_definition" | "subshell")
+            boundary = scope.start_position().row;
+            cur_scope = find_parent(scope, |ancestor| {
+                matches!(ancestor.kind(), "function_definition" | "subshell")
             });
         }
 
-        if !found_in_parent && (decl_range.is_none() || continue_searching) {
+        if !found_in_scope && (decl_range.is_none() || continue_searching) {
             let mut found_uri: Option<String> = None;
             for search_uri in ordered_uris {
-                let Some(sdoc) = self.docs.get(search_uri.as_str()) else {
+                let Some(search_doc) = self.docs.get(search_uri.as_str()) else {
                     continue;
                 };
-                let ssource = sdoc.source.as_bytes();
-                let sroot = sdoc.tree.root_node();
-                let mut sboundary = if search_uri == uri {
+                let search_source = search_doc.source.as_bytes();
+                let search_root = search_doc.tree.root_node();
+                let mut search_boundary = if search_uri == uri {
                     position.line as usize
                 } else {
-                    sroot.end_position().row
+                    search_root.end_position().row
                 };
-                let (d, cont) = find_declaration_using_global_semantics(
-                    sroot,
-                    ssource,
+                let (found_range, keep_searching) = find_declaration_using_global_semantics(
+                    search_root,
+                    search_source,
                     word,
                     kind,
                     uri,
                     search_uri,
                     position,
-                    &mut sboundary,
+                    &mut search_boundary,
                 );
-                if d.is_some() {
-                    decl_range = d;
+                if found_range.is_some() {
+                    decl_range = found_range;
                     found_uri = Some(search_uri.clone());
-                    if !cont {
+                    if !keep_searching {
                         break;
                     }
                 }
             }
 
-            if let Some(ref du) = found_uri {
-                let decl_uri: Uri = du.parse().unwrap_or_else(|_| uri.parse().unwrap());
+            if let Some(decl_uri_str) = found_uri {
+                let decl_uri: Uri = decl_uri_str
+                    .parse()
+                    .unwrap_or_else(|_| uri.parse().unwrap());
                 return (
                     decl_range.map(|r| Location {
                         uri: decl_uri,
@@ -532,7 +534,7 @@ impl Analyser {
                 uri: uri_parsed.clone(),
                 range: r,
             }),
-            found_parent.map(|r| Location {
+            containing_scope_range.map(|r| Location {
                 uri: uri_parsed,
                 range: r,
             }),
@@ -729,4 +731,3 @@ impl Analyser {
         }
     }
 }
-

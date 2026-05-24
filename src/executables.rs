@@ -30,7 +30,7 @@ impl Executables {
                 }
             }
         }
-        Executables { executables }
+        Self { executables }
     }
 
     #[must_use]
@@ -48,9 +48,7 @@ impl Executables {
 }
 
 fn is_executable(path: &Path) -> bool {
-    fs::metadata(path)
-        .map(|m| m.permissions().mode() & 0o111 != 0)
-        .unwrap_or(false)
+    fs::metadata(path).is_ok_and(|m| m.permissions().mode() & 0o111 != 0)
 }
 
 #[cfg(test)]

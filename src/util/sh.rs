@@ -3,6 +3,7 @@ use std::process::Command;
 
 const GET_OPTIONS_SH: &str = include_str!("../get-options.sh");
 
+#[must_use]
 pub fn get_command_options(cmd: &str, word: &str) -> Vec<String> {
     match Command::new("bash")
         .args(["-c", GET_OPTIONS_SH, "--", cmd, word])

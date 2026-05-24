@@ -35,12 +35,12 @@ pub enum ShellCheckLevel {
 
 impl ShellCheckLevel {
     #[must_use]
-    pub fn as_str(&self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
-            ShellCheckLevel::Error => "error",
-            ShellCheckLevel::Warning => "warning",
-            ShellCheckLevel::Info => "info",
-            ShellCheckLevel::Style => "style",
+            Self::Error => "error",
+            Self::Warning => "warning",
+            Self::Info => "info",
+            Self::Style => "style",
         }
     }
 }

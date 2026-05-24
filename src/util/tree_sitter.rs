@@ -18,7 +18,7 @@ pub fn node_range(node: Node<'_>) -> Range {
 }
 
 #[must_use]
-pub fn position_to_point(p: Position) -> Point {
+pub const fn position_to_point(p: Position) -> Point {
     Point {
         row: p.line as usize,
         column: p.character as usize,
@@ -71,6 +71,7 @@ fn regex_is_flag_with_arg(s: &str) -> bool {
     s.chars().last().is_some_and(|c| "dinNptu".contains(c))
 }
 
+#[must_use]
 pub fn nodes_same(a: Node<'_>, b: Node<'_>) -> bool {
     a.start_byte() == b.start_byte() && a.end_byte() == b.end_byte()
 }

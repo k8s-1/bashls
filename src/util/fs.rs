@@ -1,15 +1,18 @@
 use std::path::{Path, PathBuf};
 
+#[must_use]
 pub fn uri_to_path(uri: &str) -> PathBuf {
     uri_to_path_opt(uri).unwrap_or_else(|| PathBuf::from(uri))
 }
 
+#[must_use]
 pub fn uri_to_path_opt(uri: &str) -> Option<PathBuf> {
     let path = uri.strip_prefix("file://")?;
     let decoded = percent_decode(path);
     Some(PathBuf::from(decoded))
 }
 
+#[must_use]
 pub fn path_to_uri(path: &Path) -> String {
     let s = path.to_string_lossy();
     let mut out = String::with_capacity(s.len() + 7);
@@ -35,6 +38,7 @@ pub fn path_to_uri(path: &Path) -> String {
     out
 }
 
+#[must_use]
 pub fn untildify(path: &str) -> String {
     if let Some(rest) = path.strip_prefix('~')
         && let Ok(home) = std::env::var("HOME")
@@ -44,6 +48,7 @@ pub fn untildify(path: &str) -> String {
     path.to_string()
 }
 
+#[must_use]
 pub fn get_file_paths(workspace_root: &Path, glob_pattern: &str, max_items: usize) -> Vec<PathBuf> {
     let suffixes: Vec<String> = expand_extglob(glob_pattern)
         .into_iter()
@@ -81,6 +86,7 @@ fn expand_extglob(pattern: &str) -> Vec<String> {
     vec![pattern.to_string()]
 }
 
+#[must_use]
 pub fn make_relative(target: &str, base_dir: &str) -> String {
     if let (Ok(t), Ok(b)) = (
         std::path::Path::new(target).canonicalize(),
@@ -111,7 +117,7 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).into_owned()
 }
 
-fn from_hex(b: u8) -> Option<u8> {
+const fn from_hex(b: u8) -> Option<u8> {
     match b {
         b'0'..=b'9' => Some(b - b'0'),
         b'a'..=b'f' => Some(b - b'a' + 10),

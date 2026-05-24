@@ -13,6 +13,10 @@ check:
 lint:
     cargo clippy -- -D warnings
 
+# run clippy with pedantic and nursery lints (informational — some noise expected)
+lint-strict:
+    cargo clippy -- -D warnings -W clippy::pedantic -W clippy::nursery
+
 # format source code
 fmt:
     cargo fmt

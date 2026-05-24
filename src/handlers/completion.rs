@@ -49,7 +49,7 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
         && let Some(line_str) = doc.content.lines().nth(pos.line as usize)
     {
         match line_str.chars().nth(pos.character as usize) {
-            None | Some(' ') | Some('\t') => {}
+            None | Some(' ' | '\t') => {}
             _ => return vec![],
         }
     }

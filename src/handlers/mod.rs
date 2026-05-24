@@ -15,6 +15,7 @@ pub use rename::{handle_prepare_rename, handle_rename};
 use lsp_types::SymbolInformation;
 use std::collections::HashSet;
 
+#[must_use]
 pub fn deduplicate_symbols(
     symbols: Vec<SymbolInformation>,
     current_uri: &str,

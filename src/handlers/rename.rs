@@ -7,7 +7,9 @@ pub fn handle_prepare_rename(
     uri: &str,
     pos: Position,
 ) -> Option<lsp_types::PrepareRenameResponse> {
-    let (word, range, kind) = server.analyser.symbol_at_point(uri, pos.line, pos.character)?;
+    let (word, range, kind) = server
+        .analyser
+        .symbol_at_point(uri, pos.line, pos.character)?;
     if kind == SymbolKind::VARIABLE
         && (word == "_"
             || !word
@@ -26,7 +28,9 @@ pub fn handle_rename(
     pos: Position,
     new_name: &str,
 ) -> Option<WorkspaceEdit> {
-    let (word, _range, kind) = server.analyser.symbol_at_point(uri, pos.line, pos.character)?;
+    let (word, _range, kind) = server
+        .analyser
+        .symbol_at_point(uri, pos.line, pos.character)?;
 
     if kind == SymbolKind::VARIABLE
         && (new_name == "_"
@@ -41,10 +45,9 @@ pub fn handle_rename(
         return None;
     }
 
-    let (declaration, parent) =
-        server
-            .analyser
-            .find_original_declaration(uri, pos, &word, kind);
+    let (declaration, parent) = server
+        .analyser
+        .find_original_declaration(uri, pos, &word, kind);
 
     #[allow(clippy::mutable_key_type)]
     let mut changes: HashMap<Uri, Vec<TextEdit>> = HashMap::new();
@@ -63,10 +66,9 @@ pub fn handle_rename(
         // Locally-scoped or unknown: rename within current file only, scoped to parent if known
         let start = declaration.as_ref().map(|d| d.range.start);
         let scope = parent.as_ref().map(|p| p.range);
-        let mut ranges =
-            server
-                .analyser
-                .find_occurrences_within(uri, &word, kind, start, scope);
+        let mut ranges = server
+            .analyser
+            .find_occurrences_within(uri, &word, kind, start, scope);
         if ranges.is_empty() {
             ranges = server
                 .analyser
@@ -82,13 +84,10 @@ pub fn handle_rename(
         let decl_uri_str = decl.uri.as_str().to_string();
         let decl_start = Some(decl.range.start);
 
-        let ranges = server.analyser.find_occurrences_within(
-            &decl_uri_str,
-            &word,
-            kind,
-            decl_start,
-            None,
-        );
+        let ranges =
+            server
+                .analyser
+                .find_occurrences_within(&decl_uri_str, &word, kind, decl_start, None);
         let decl_key: Uri = decl_uri_str.parse().ok()?;
         changes.insert(decl_key, make_edits(ranges));
 

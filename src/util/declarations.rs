@@ -246,32 +246,29 @@ pub fn find_declaration_using_global_semantics(
 
         if kind == SymbolKind::VARIABLE && n.kind() == "declaration_command" {
             let func_def = find_parent(n, |p| p.kind() == "function_definition");
-            let first_kw = n
+            let first_keyword = n
                 .child(0)
                 .and_then(|c| c.utf8_text(source).ok())
                 .unwrap_or("");
             let is_local_decl = func_def.is_some_and(|fd| {
-                let count = fd.child_count();
-                let last_kind = if count > 0 {
-                    fd.child((count - 1) as u32).map_or("", |c| c.kind())
-                } else {
-                    ""
-                };
+                let last_kind = fd.children(&mut fd.walk()).last().map_or("", |c| c.kind());
                 last_kind == "compound_statement"
-                    && matches!(first_kw, "local" | "declare" | "typeset")
+                    && matches!(first_keyword, "local" | "declare" | "typeset")
                     && (base_node.kind() != "subshell"
                         || base_node.start_position().row < fd.start_position().row)
             });
 
             let mut var_nodes = Vec::new();
             collect_typed_nodes(n, &["variable_name"], n.start_position(), &mut var_nodes);
-            for v in var_nodes {
-                let vtext = v.utf8_text(source).unwrap_or("");
-                if vtext != word {
+            for node in var_nodes {
+                let text = node.utf8_text(source).unwrap_or("");
+                if text != word {
                     continue;
                 }
-                if find_parent(v, |p| matches!(p.kind(), "simple_expansion" | "expansion"))
-                    .is_some()
+                if find_parent(node, |p| {
+                    matches!(p.kind(), "simple_expansion" | "expansion")
+                })
+                .is_some()
                 {
                     continue;
                 }
@@ -279,9 +276,10 @@ pub fn find_declaration_using_global_semantics(
                     *boundary = n.start_position().row;
                     break;
                 }
-                if original_uri != current_uri || !is_defined_variable_in_expression(n, v, position)
+                if original_uri != current_uri
+                    || !is_defined_variable_in_expression(n, node, position)
                 {
-                    declaration = Some(node_range(v));
+                    declaration = Some(node_range(node));
                     continue_searching = false;
                     break;
                 }
@@ -296,12 +294,12 @@ pub fn find_declaration_using_global_semantics(
         {
             let mut var_nodes = Vec::new();
             collect_typed_nodes(n, &["variable_name"], n.start_position(), &mut var_nodes);
-            if let Some(dv) = var_nodes.into_iter().next() {
-                let dv_in_expr = original_uri == current_uri
+            if let Some(decl_var) = var_nodes.into_iter().next() {
+                let decl_var_in_expr = original_uri == current_uri
                     && n.kind() == "variable_assignment"
-                    && is_defined_variable_in_expression(n, dv, position);
-                if dv.utf8_text(source).unwrap_or("") == word && !dv_in_expr {
-                    declaration = Some(node_range(dv));
+                    && is_defined_variable_in_expression(n, decl_var, position);
+                if decl_var.utf8_text(source).unwrap_or("") == word && !decl_var_in_expr {
+                    declaration = Some(node_range(decl_var));
                     continue_searching = base_node.kind() == "subshell" && n.kind() == "command";
                     return false;
                 }
@@ -355,9 +353,7 @@ pub fn find_occurrences_within_tree(
         _ => root,
     };
 
-    let effective_start = start
-        .map(position_to_point)
-        .unwrap_or_else(|| base_node.start_position());
+    let effective_start = start.map_or_else(|| base_node.start_position(), position_to_point);
 
     let kinds: &[&str] = if kind == SymbolKind::VARIABLE {
         &["variable_name", "word"]
@@ -373,9 +369,8 @@ pub fn find_occurrences_within_tree(
 
     if kind == SymbolKind::VARIABLE {
         for n in nodes {
-            let text = match n.utf8_text(source) {
-                Ok(t) => t,
-                Err(_) => continue,
+            let Ok(text) = n.utf8_text(source) else {
+                continue;
             };
             if text != word {
                 continue;
@@ -395,7 +390,7 @@ pub fn find_occurrences_within_tree(
             if defined_var_matches {
                 let is_self = defined_var.is_some_and(|dv| dv.start_byte() == n.start_byte());
                 if !is_self {
-                    let def_row = definition.map(|d| d.start_position().row).unwrap_or(0);
+                    let def_row = definition.map_or(0, |d| d.start_position().row);
                     if start.is_some_and(|s| def_row == s.line as usize) {
                         continue;
                     }
@@ -456,9 +451,7 @@ pub fn find_occurrences_within_tree(
             let in_base = parent_subshell.is_none_or(|ps| nodes_same(ps, base_node));
             if in_base {
                 let r = if n.kind() == "function_definition" {
-                    n.named_child(0)
-                        .map(node_range)
-                        .unwrap_or_else(|| node_range(n))
+                    n.named_child(0).map_or_else(|| node_range(n), node_range)
                 } else {
                     node_range(n)
                 };
@@ -515,26 +508,30 @@ pub fn find_declaration_using_local_semantics(
             return true;
         }
 
-        let first_kw = n
+        let first_keyword = n
             .child(0)
             .and_then(|c| c.utf8_text(source).ok())
             .unwrap_or("");
-        if !matches!(first_kw, "local" | "declare" | "typeset") {
+        if !matches!(first_keyword, "local" | "declare" | "typeset") {
             return false;
         }
 
         let mut var_nodes = Vec::new();
         collect_typed_nodes(n, &["variable_name"], n.start_position(), &mut var_nodes);
-        for v in var_nodes {
-            let vtext = v.utf8_text(source).unwrap_or("");
-            if vtext != word {
+        for node in var_nodes {
+            let text = node.utf8_text(source).unwrap_or("");
+            if text != word {
                 continue;
             }
-            if find_parent(v, |p| matches!(p.kind(), "simple_expansion" | "expansion")).is_some() {
+            if find_parent(node, |p| {
+                matches!(p.kind(), "simple_expansion" | "expansion")
+            })
+            .is_some()
+            {
                 continue;
             }
-            if !is_defined_variable_in_expression(n, v, position) {
-                declaration = Some(node_range(v));
+            if !is_defined_variable_in_expression(n, node, position) {
+                declaration = Some(node_range(node));
                 continue_searching = false;
                 break;
             }

@@ -9,7 +9,9 @@ use lsp_types::{Hover, MarkupContent, MarkupKind, Position, SymbolInformation, S
 use super::deduplicate_symbols;
 
 pub fn handle_hover(server: &mut Server, uri: &str, pos: Position) -> Option<Hover> {
-    let word = server.analyser.word_at_point(uri, pos.line, pos.character)?;
+    let word = server
+        .analyser
+        .word_at_point(uri, pos.line, pos.character)?;
     if word.starts_with('#') {
         return None;
     }

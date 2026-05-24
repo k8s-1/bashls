@@ -7,7 +7,9 @@ pub fn handle_goto_definition(
     uri: &str,
     pos: Position,
 ) -> Option<Vec<Location>> {
-    let word = server.analyser.word_at_point(uri, pos.line, pos.character)?;
+    let word = server
+        .analyser
+        .word_at_point(uri, pos.line, pos.character)?;
     let locs = server.analyser.find_declaration_locations(uri, &word, pos);
     if locs.is_empty() { None } else { Some(locs) }
 }
