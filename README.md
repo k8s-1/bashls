@@ -1,6 +1,6 @@
 # bls
 
-A Rust rewrite of [bash-language-server](https://github.com/bash-lsp/bash-language-server). Ships as a single binary with no install-time scripts, eliminating npm supply chain risk.
+A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no runtime dependencies.
 
 <p align="center">
   <picture align="center">
