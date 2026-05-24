@@ -38,7 +38,9 @@ impl Linter {
             .output()
         {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                log::warn!("ShellCheck: executable not found at '{executable_path}', linting disabled");
+                log::warn!(
+                    "ShellCheck: executable not found at '{executable_path}', linting disabled"
+                );
                 false
             }
             _ => true,

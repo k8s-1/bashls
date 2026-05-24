@@ -21,7 +21,9 @@ impl Formatter {
             .output()
         {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                log::warn!("Shfmt: executable not found at '{executable_path}', formatting disabled");
+                log::warn!(
+                    "Shfmt: executable not found at '{executable_path}', formatting disabled"
+                );
                 false
             }
             _ => true,
