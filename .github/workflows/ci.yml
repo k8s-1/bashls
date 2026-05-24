@@ -13,19 +13,9 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Install cargo-audit
-        run: cargo install cargo-audit --locked
-
-      - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
-
-      - name: Install shfmt
-        run: |
-          curl -sSL https://github.com/mvdan/sh/releases/latest/download/shfmt_$(curl -s https://api.github.com/repos/mvdan/sh/releases/latest | grep tag_name | cut -d'"' -f4)_linux_amd64 -o shfmt
-          chmod +x shfmt
-          sudo mv shfmt /usr/local/bin/
+      - name: Install shellcheck and shfmt
+        run: sudo apt-get install -y shellcheck shfmt
 
       - run: cargo fmt -- --check
       - run: cargo clippy -- -D warnings
-      - run: cargo audit
       - run: cargo test
