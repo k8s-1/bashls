@@ -7,11 +7,6 @@ pub fn uri_to_path(uri: &str) -> PathBuf {
 pub fn uri_to_path_opt(uri: &str) -> Option<PathBuf> {
     let path = uri.strip_prefix("file://")?;
     let decoded = percent_decode(path);
-    // On Windows, file:///C:/foo decodes to /C:/foo — strip the leading slash.
-    let decoded = match decoded.as_bytes() {
-        [b'/', drive, b':', ..] if drive.is_ascii_alphabetic() => &decoded[1..],
-        _ => &decoded,
-    };
     Some(PathBuf::from(decoded))
 }
 
@@ -134,14 +129,6 @@ mod tests {
         assert_eq!(
             uri_to_path("/already/a/path"),
             PathBuf::from("/already/a/path")
-        );
-    }
-
-    #[test]
-    fn windows_drive_path() {
-        assert_eq!(
-            uri_to_path("file:///C:/Users/foo/bar.sh"),
-            PathBuf::from("C:/Users/foo/bar.sh")
         );
     }
 }

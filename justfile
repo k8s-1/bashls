@@ -47,6 +47,14 @@ bench:
     @echo "=== Memory (RSS) ==="
     /usr/bin/time -v bash -c 'echo "{}" | ./target/release/bashls start' 2>&1 | grep "Maximum resident"
 
+# release: bump version, commit, tag, and push
+release version: ci
+    cargo set-version {{version}}
+    git add Cargo.toml Cargo.lock
+    git commit -m "chore: bump version to {{version}}"
+    git tag v{{version}}
+    git push origin main --tags
+
 # publish to crates.io
 publish: ci build
     cargo publish
