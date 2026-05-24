@@ -57,6 +57,12 @@ vim.lsp.config('bashls', {
   cmd = { 'bashls' },
   filetypes = { 'sh' },
   root_markers = { '.git' },
+  -- optionally pass configuration options via bashIde
+  init_options = {
+    bashIde = {
+      shellcheckPath = '/usr/bin/shellcheck',
+    },
+  },
 })
 vim.lsp.enable('bashls')
 ```
