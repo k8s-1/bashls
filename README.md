@@ -46,22 +46,9 @@ cd bashls
 cargo build --release
 ```
 
-## Editor support
+## Configuration
 
 bashls works with any editor that supports LSP. Consult your editor's LSP documentation for implementation.
-
-### Neovim
-
-```lua
-vim.lsp.config('bashls', {
-  cmd = { 'bashls' },
-  filetypes = { 'sh' },
-  root_markers = { '.git' },
-})
-vim.lsp.enable('bashls')
-```
-
-## Configuration
 
 Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables. LSP settings take effect at runtime and can be updated via `workspace/didChangeConfiguration`.
 
@@ -77,21 +64,13 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `ENABLE_SOURCE_ERROR_DIAGNOSTICS` | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved |
 | `BASH_IDE_LOG_LEVEL` | `logLevel` | `info` | |
 
-### Neovim example
+### Neovim
 
 ```lua
 vim.lsp.config('bashls', {
   cmd = { 'bashls' },
   filetypes = { 'sh' },
   root_markers = { '.git' },
-  settings = {
-    bashIde = {
-      shellcheckPath = '/usr/bin/shellcheck',
-      shfmt = {
-        path = '/usr/bin/shfmt',
-      },
-    },
-  },
 })
 vim.lsp.enable('bashls')
 ```
