@@ -8,10 +8,10 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        Some("--version") => {
+        Some("--version") | Some("-v") => {
             println!("bashls {}", env!("CARGO_PKG_VERSION"));
         }
-        Some("--help") => {
+        Some("--help") | Some("-h") => {
             println!("Usage: bashls [start|--version|--help]");
         }
         _ => {
