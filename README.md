@@ -63,7 +63,7 @@ vim.lsp.enable('bashls')
 
 ## Configuration
 
-Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`, `bashIde.logLevel` → `BASH_IDE_LOG_LEVEL`).
+Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`).
 
 | Setting (`bashIde.*`) | Default | Description |
 |---|---|---|
