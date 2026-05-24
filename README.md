@@ -3,7 +3,7 @@
 [![CI](https://github.com/k8s-1/bashls/actions/workflows/ci.yml/badge.svg)](https://github.com/k8s-1/bashls/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/bashls.svg)](https://crates.io/crates/bashls)
 
-A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no Node.js runtime and minimal dependencies to reduce supply chain attack surface.
+A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no Node.js and minimal runtime dependencies.
 
 <p align="center">
   <picture align="center">
