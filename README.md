@@ -50,19 +50,17 @@ cargo build --release
 
 bashls works with any editor that supports LSP. Consult your editor's LSP documentation for implementation.
 
-Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables. LSP settings take effect at runtime and can be updated via `workspace/didChangeConfiguration`.
+Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`, `bashIde.logLevel` → `BASH_IDE_LOG_LEVEL`).
 
-| Env var | LSP setting (`bashIde.*`) | Default | Notes |
-|---|---|---|---|
-| `SHELLCHECK_PATH` | `shellcheckPath` | `shellcheck` | Set to empty string to disable |
-| *(see [shellcheck](https://github.com/koalaman/shellcheck))* | `shellcheckArguments` | `[]` | Additional shellcheck arguments |
-| `SHFMT_PATH` | `shfmt.path` | `shfmt` | Set to empty string to disable |
-| *(see [shfmt](https://github.com/mvdan/sh))* | `shfmt.*` | | Remaining shfmt options |
-| `GLOB_PATTERN` | `globPattern` | `**/*@(.sh,.inc,.bash,.command)` | Files the server treats as bash |
-| `BACKGROUND_ANALYSIS_MAX_FILES` | `backgroundAnalysisMaxFiles` | `500` | Max files to analyse in background for workspace-wide features |
-| `INCLUDE_ALL_WORKSPACE_SYMBOLS` | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files |
-| `ENABLE_SOURCE_ERROR_DIAGNOSTICS` | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved |
-| `BASH_IDE_LOG_LEVEL` | `logLevel` | `info` | |
+- `shellcheckPath` (default: `shellcheck`) — path to shellcheck binary; set to empty string to disable
+- `shellcheckArguments` (default: `[]`) — additional arguments passed to [shellcheck](https://github.com/koalaman/shellcheck)
+- `shfmt.path` (default: `shfmt`) — path to shfmt binary; set to empty string to disable
+- `shfmt.*` — see [shfmt](https://github.com/mvdan/sh) for remaining formatting options
+- `globPattern` (default: `*.sh, *.bash, *.inc, *.command`) — files the server treats as bash
+- `backgroundAnalysisMaxFiles` (default: `500`) — max files to analyse in background for workspace-wide features
+- `includeAllWorkspaceSymbols` (default: `false`) — return functions and variables from all workspace files in symbol search, not just open files
+- `enableSourceErrorDiagnostics` (default: `false`) — show diagnostics when a `source`/`.` command cannot be resolved
+- `logLevel` (default: `info`)
 
 ### Neovim
 
