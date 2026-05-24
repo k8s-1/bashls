@@ -1,5 +1,7 @@
 # bls
 
+[![CI](https://github.com/k8s-1/bls/actions/workflows/ci.yml/badge.svg)](https://github.com/k8s-1/bls/actions/workflows/ci.yml)
+
 A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no runtime dependencies.
 
 <p align="center">
