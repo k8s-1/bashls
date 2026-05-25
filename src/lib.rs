@@ -1,3 +1,4 @@
+#![deny(warnings)]
 pub mod analyser;
 pub mod builtins;
 pub mod config;

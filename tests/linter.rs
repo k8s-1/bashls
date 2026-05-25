@@ -1,3 +1,4 @@
+#![deny(warnings)]
 use bashls::shellcheck::Linter;
 
 const SHELLCHECK: &str = "/usr/bin/shellcheck";
