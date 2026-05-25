@@ -8,6 +8,7 @@ repository = "https://github.com/k8s-1/bashls"
 homepage = "https://github.com/k8s-1/bashls"
 keywords = ["bash", "lsp", "language-server", "shell"]
 categories = ["development-tools"]
+readme = "CRATES.md"
 exclude = ["tests/", ".github/", "assets/", "CLAUDE.md", "justfile"]
 
 [dependencies]
