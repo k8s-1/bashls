@@ -9,7 +9,7 @@ A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-la
 
 ## Motivation
 
-My editor was slowing down. bash-language-server errors had pushed my logs past 1 GB. I wanted something self-contained.
+bash-language-server errors had pushed my logs past 1 GB. My editor was slowing down. I wanted something self-contained.
 
 ## Features
 
@@ -46,7 +46,7 @@ cargo build --release
 
 ## Editor support
 
-bashls works with any editor that supports LSP. Consult your editor's LSP documentation for implementation.
+bashls works with any editor that supports LSP.
 
 ### Neovim
 
@@ -55,14 +55,43 @@ vim.lsp.config('bashls', {
   cmd = { 'bashls' },
   filetypes = { 'sh' },
   root_markers = { '.git' },
-  -- -- optionally pass configuration options via bashIde:
   -- init_options = {
-  --   bashIde = {
-  --     shellcheckPath = '/usr/bin/shellcheck',
-  --   },
+  --   bashIde = { shellcheckPath = '/usr/bin/shellcheck' },
   -- },
 })
 vim.lsp.enable('bashls')
+```
+
+### Helix
+
+```toml
+[[language]]
+name = "bash"
+language-servers = ["bashls"]
+
+[language-server.bashls]
+command = "bashls"
+```
+
+### Zed
+
+```json
+{
+  "lsp": {
+    "bash-language-server": {
+      "binary": {
+        "path": "/path/to/bashls"
+      }
+    }
+  }
+}
+```
+
+### Emacs
+
+```elisp
+(add-to-list 'eglot-server-programs
+             '(sh-mode . ("bashls")))
 ```
 
 ## Configuration
@@ -80,6 +109,11 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
 | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
 | `logLevel` | `info` | Log level. |
+
+## Limitations
+
+- **No [explainshell](https://explainshell.com) integration.** bash-language-server can show per-flag hover documentation by querying a local explainshell server. Supporting this would require pulling in an HTTP/TLS stack (~50 crates); skipped intentionally to keep the dependency footprint small.
+- **Linux and macOS only.** This is a bash language server — if you're on Windows, use WSL.
 
 ## Benchmarks
 

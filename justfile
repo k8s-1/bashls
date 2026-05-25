@@ -54,10 +54,15 @@ bench: build
     @command -v "${BASH_LS_BIN:-bash-language-server}" > /dev/null 2>&1 || { echo "bash-language-server not found: set BASH_LS_BIN to its path"; exit 1; }
     cargo run --example lsp_bench --release
 
-# release: bump version, commit, tag, and push
+# generate CHANGELOG.md from git history
+changelog:
+    git-cliff --output CHANGELOG.md
+
+# release: bump version, update changelog, commit, tag, and push
 release version: ci
     cargo set-version {{version}}
-    git add Cargo.toml Cargo.lock
+    git-cliff --tag v{{version}} --output CHANGELOG.md
+    git add Cargo.toml Cargo.lock CHANGELOG.md
     git commit -m "chore: bump version to {{version}}"
     git tag v{{version}} -m "v{{version}}"
     git push origin main --tags
