@@ -1,8 +1,9 @@
-## [unreleased]
+## [0.2.3] - 2026-05-25
 
 ### 🐛 Bug Fixes
 
 - *(bench)* Accurate methodology and updated benchmark numbers
+- Use workspace_folders for workspace root resolution
 
 ### 📚 Documentation
 
