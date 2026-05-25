@@ -9,7 +9,7 @@ homepage = "https://github.com/k8s-1/bashls"
 keywords = ["bash", "lsp", "language-server", "shell"]
 categories = ["development-tools"]
 readme = "CRATES.md"
-exclude = ["tests/", ".github/", "assets/", "CLAUDE.md", "justfile", "examples/"]
+exclude = ["tests/", ".github/", "assets/", "AGENT.md", "CLAUDE.md", "justfile", "examples/"]
 
 [dependencies]
 anyhow = "1.0.102"
