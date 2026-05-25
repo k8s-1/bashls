@@ -4,8 +4,8 @@
   <!-- shared legend -->
   <rect x="32" y="20" width="10" height="10" fill="#388bfd" rx="2"/>
   <text x="48" y="30" fill="#e6edf3" font-size="13" font-weight="600">bash-language-server</text>
-  <rect x="206" y="20" width="10" height="10" fill="#3fb950" rx="2"/>
-  <text x="222" y="30" fill="#e6edf3" font-size="13" font-weight="600">bashls</text>
+  <rect x="250" y="20" width="10" height="10" fill="#3fb950" rx="2"/>
+  <text x="266" y="30" fill="#e6edf3" font-size="13" font-weight="600">bashls</text>
 
   <!-- === STARTUP TIME === -->
   <text x="32" y="62" fill="#e6edf3" font-size="16" font-weight="600">Startup</text>
