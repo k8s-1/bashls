@@ -11,21 +11,21 @@
   <text x="32" y="62" fill="#e6edf3" font-size="16" font-weight="600">Startup</text>
 
   <rect x="32" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="188" y="89" fill="#e6edf3" font-size="14" font-weight="600">454 ms</text>
+  <text x="188" y="89" fill="#e6edf3" font-size="14" font-weight="600">443 ms</text>
 
   <rect x="32" y="104" width="4" height="24" fill="#3fb950" rx="3"/>
-  <text x="42" y="121" fill="#e6edf3" font-size="14" font-weight="600">14 ms</text>
+  <text x="42" y="121" fill="#e6edf3" font-size="14" font-weight="600">13 ms</text>
 
-  <text x="32" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">32×</tspan> faster startup</text>
+  <text x="32" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">34×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
   <text x="310" y="62" fill="#e6edf3" font-size="16" font-weight="600">Memory (RSS)</text>
 
   <rect x="310" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="466" y="89" fill="#e6edf3" font-size="14" font-weight="600">290 MB</text>
+  <text x="466" y="89" fill="#e6edf3" font-size="14" font-weight="600">275 MB</text>
 
   <rect x="310" y="104" width="13" height="24" fill="#3fb950" rx="3"/>
-  <text x="329" y="121" fill="#e6edf3" font-size="14" font-weight="600">26 MB</text>
+  <text x="329" y="121" fill="#e6edf3" font-size="14" font-weight="600">25 MB</text>
 
   <text x="310" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">11×</tspan> less memory</text>
 
@@ -33,10 +33,10 @@
   <text x="588" y="62" fill="#e6edf3" font-size="16" font-weight="600">Latency</text>
 
   <rect x="588" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="744" y="89" fill="#e6edf3" font-size="14" font-weight="600">3464 ms</text>
+  <text x="744" y="89" fill="#e6edf3" font-size="14" font-weight="600">3261 ms</text>
 
   <rect x="588" y="104" width="49" height="24" fill="#3fb950" rx="3"/>
-  <text x="643" y="121" fill="#e6edf3" font-size="14" font-weight="600">1138 ms</text>
+  <text x="643" y="121" fill="#e6edf3" font-size="14" font-weight="600">1110 ms</text>
 
   <text x="588" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">3×</tspan> lower latency</text>
 </svg>

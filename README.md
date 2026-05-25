@@ -5,13 +5,11 @@
 
 A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no Node.js and minimal runtime dependencies.
 
-<p align="center">
-  <picture align="center">
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-light.svg">
-    <img alt="Benchmark results comparing bashls to bash-language-server." src="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
-  </picture>
-</p>
+## Motivation
+
+My editor logs were complaining about npm not being installed — bash-language-server requires it, and I was looking for a lighter alternative.
+
+![bashls demo](assets/demo.gif)
 
 ## Features
 
@@ -82,3 +80,19 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
 | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
 | `logLevel` | `info` | Log level. |
+
+## Benchmarks
+
+Measured against [bash-language-server](https://github.com/bash-lsp/bash-language-server) 5.6.0 using 50 `.sh` files from [oh-my-bash](https://github.com/ohmybash/oh-my-bash) as a corpus. Latency is the average response time under a burst of 2500 simultaneous completion and hover requests. See [examples/lsp_bench.rs](examples/lsp_bench.rs) for the full methodology and instructions to reproduce.
+
+<p align="center">
+  <picture align="center">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-light.svg">
+    <img alt="Benchmark results comparing bashls to bash-language-server." src="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
+  </picture>
+</p>
+
+## License
+
+This project is released under the [MIT License](LICENSE).
