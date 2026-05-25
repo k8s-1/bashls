@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="13">
-  <rect width="640" height="180" fill="#ffffff" rx="8"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="180" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="13">
+  <rect width="960" height="180" fill="#ffffff" rx="8"/>
 
   <!-- shared legend -->
   <rect x="32" y="20" width="10" height="10" fill="#0969da" rx="2"/>
@@ -19,13 +19,24 @@
   <text x="32" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">29×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
-  <text x="340" y="60" fill="#1f2328" font-size="14" font-weight="600">Memory (RSS)</text>
+  <text x="352" y="60" fill="#1f2328" font-size="14" font-weight="600">Memory (RSS)</text>
 
-  <rect x="340" y="72" width="240" height="24" fill="#0969da" rx="3"/>
-  <text x="586" y="89" fill="#1f2328" font-size="12">197 MB</text>
+  <rect x="352" y="72" width="240" height="24" fill="#0969da" rx="3"/>
+  <text x="598" y="89" fill="#1f2328" font-size="12">197 MB</text>
 
-  <rect x="340" y="104" width="27" height="24" fill="#1a7f37" rx="3"/>
-  <text x="373" y="121" fill="#1f2328" font-size="12">22 MB</text>
+  <rect x="352" y="104" width="27" height="24" fill="#1a7f37" rx="3"/>
+  <text x="385" y="121" fill="#1f2328" font-size="12">22 MB</text>
 
-  <text x="340" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">9×</tspan> less memory</text>
+  <text x="352" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">9×</tspan> less memory</text>
+
+  <!-- === LATENCY === -->
+  <text x="672" y="60" fill="#1f2328" font-size="14" font-weight="600">Latency (avg)</text>
+
+  <rect x="672" y="72" width="240" height="24" fill="#0969da" rx="3"/>
+  <text x="918" y="89" fill="#1f2328" font-size="12">1104 ms</text>
+
+  <rect x="672" y="104" width="160" height="24" fill="#1a7f37" rx="3"/>
+  <text x="838" y="121" fill="#1f2328" font-size="12">738 ms</text>
+
+  <text x="672" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">1.5×</tspan> lower latency</text>
 </svg>
