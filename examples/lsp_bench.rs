@@ -17,11 +17,10 @@
 //   CORPUS_FILES   max files to use              (default: 50)
 
 use std::{
-    collections::HashMap,
     env, fs,
     io::{BufRead, BufReader, Read, Write},
-    process::{Command, Stdio},
-    sync::{Arc, Mutex},
+    process::{Child, ChildStdin, Command, Stdio},
+    sync::mpsc,
     thread,
     time::{Duration, Instant},
 };
@@ -31,23 +30,20 @@ use walkdir::WalkDir;
 
 struct BenchResult {
     startup_ms: f64,
-    latencies: Vec<f64>,
+    latencies_ms: Vec<f64>, // sorted ascending
     rss_kb: u64,
 }
 
-fn lsp_encode(obj: &Value) -> Vec<u8> {
-    let body = serde_json::to_string(obj).unwrap();
+// ── LSP framing ───────────────────────────────────────────────────────────────
+
+fn lsp_encode(value: &Value) -> Vec<u8> {
+    let body = serde_json::to_string(value).unwrap();
     let mut out = format!("Content-Length: {}\r\n\r\n", body.len()).into_bytes();
     out.extend_from_slice(body.as_bytes());
     out
 }
 
-fn send(stdin: &mut std::process::ChildStdin, obj: Value) {
-    stdin.write_all(&lsp_encode(&obj)).ok();
-    stdin.flush().ok();
-}
-
-fn read_loop(stdout: std::process::ChildStdout, responses: Arc<Mutex<HashMap<u64, Instant>>>) {
+fn reader_thread(stdout: std::process::ChildStdout, tx: mpsc::Sender<(u64, Instant)>) {
     let mut reader = BufReader::new(stdout);
     loop {
         let mut content_length = 0usize;
@@ -74,60 +70,100 @@ fn read_loop(stdout: std::process::ChildStdout, responses: Arc<Mutex<HashMap<u64
         }
         if let Ok(msg) = serde_json::from_slice::<Value>(&body) {
             if let Some(id) = msg["id"].as_u64() {
-                responses.lock().unwrap().insert(id, Instant::now());
+                let _ = tx.send((id, Instant::now()));
             }
         }
     }
 }
 
-fn rss_kb(pid: u32) -> u64 {
-    let content = fs::read_to_string(format!("/proc/{pid}/status")).unwrap_or_default();
-    for line in content.lines() {
-        if let Some(rest) = line.strip_prefix("VmRSS:") {
-            return rest
-                .split_whitespace()
-                .next()
-                .and_then(|v| v.parse().ok())
-                .unwrap_or(0);
-        }
-    }
-    0
+// ── LSP session ───────────────────────────────────────────────────────────────
+
+struct LspSession {
+    child: Child,
+    stdin: ChildStdin,
+    rx: mpsc::Receiver<(u64, Instant)>,
+    next_id: u64,
 }
 
-fn wait_for(responses: &Arc<Mutex<HashMap<u64, Instant>>>, id: u64, timeout: Duration) {
-    let deadline = Instant::now() + timeout;
-    while Instant::now() < deadline {
-        if responses.lock().unwrap().contains_key(&id) {
-            return;
+impl LspSession {
+    fn spawn(program: &str, args: &[&str]) -> Self {
+        let mut child = Command::new(program)
+            .args(args)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .unwrap_or_else(|e| panic!("failed to spawn {program}: {e}"));
+
+        let stdout = child.stdout.take().unwrap();
+        let stdin = child.stdin.take().unwrap();
+        let (tx, rx) = mpsc::channel();
+        thread::spawn(move || reader_thread(stdout, tx));
+
+        LspSession { child, stdin, rx, next_id: 1 }
+    }
+
+    fn notify(&mut self, msg: Value) {
+        self.stdin.write_all(&lsp_encode(&msg)).unwrap();
+        self.stdin.flush().unwrap();
+    }
+
+    fn request(&mut self, mut msg: Value) -> Duration {
+        let id = self.next_id;
+        self.next_id += 1;
+        msg["id"] = json!(id);
+        let t_sent = Instant::now();
+        self.stdin.write_all(&lsp_encode(&msg)).unwrap();
+        self.stdin.flush().unwrap();
+        self.wait_for(id, Duration::from_secs(30)).duration_since(t_sent)
+    }
+
+    fn wait_for(&self, id: u64, timeout: Duration) -> Instant {
+        let deadline = Instant::now() + timeout;
+        loop {
+            let remaining = deadline.saturating_duration_since(Instant::now());
+            match self.rx.recv_timeout(remaining) {
+                Ok((recv_id, t)) if recv_id == id => return t,
+                Ok(_) => continue,
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    panic!("timeout waiting for LSP response to request {id}")
+                }
+                Err(mpsc::RecvTimeoutError::Disconnected) => {
+                    panic!("reader thread exited before response to request {id}")
+                }
+            }
         }
-        thread::sleep(Duration::from_millis(5));
+    }
+
+    fn rss_kb(&self) -> u64 {
+        fs::read_to_string(format!("/proc/{}/status", self.child.id()))
+            .unwrap_or_default()
+            .lines()
+            .find_map(|line| {
+                let rest = line.strip_prefix("VmRSS:")?;
+                rest.split_whitespace().next()?.parse().ok()
+            })
+            .unwrap_or(0)
     }
 }
+
+impl Drop for LspSession {
+    fn drop(&mut self) {
+        self.child.kill().ok();
+        self.child.wait().ok();
+    }
+}
+
+// ── Benchmark run ─────────────────────────────────────────────────────────────
 
 fn run_bench(program: &str, args: &[&str], label: &str, files: &[(String, String)]) -> BenchResult {
     println!("\n[{label}]");
+    let mut session = LspSession::spawn(program, args);
 
-    let responses: Arc<Mutex<HashMap<u64, Instant>>> = Arc::new(Mutex::new(HashMap::new()));
-
-    let mut child = Command::new(program)
-        .args(args)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .unwrap_or_else(|e| panic!("failed to spawn {program}: {e}"));
-
-    let stdout = child.stdout.take().unwrap();
-    let mut stdin = child.stdin.take().unwrap();
-
-    let resp_clone = Arc::clone(&responses);
-    thread::spawn(move || read_loop(stdout, resp_clone));
-
-    let t0 = Instant::now();
-    send(
-        &mut stdin,
-        json!({
-            "jsonrpc": "2.0", "id": 1, "method": "initialize",
+    let startup_ms = session
+        .request(json!({
+            "jsonrpc": "2.0",
+            "method": "initialize",
             "params": {
                 "processId": std::process::id(),
                 "rootUri": "file:///tmp",
@@ -138,202 +174,140 @@ fn run_bench(program: &str, args: &[&str], label: &str, files: &[(String, String
                     }
                 }
             }
-        }),
-    );
-    wait_for(&responses, 1, Duration::from_secs(10));
-    let startup_ms = responses
-        .lock()
-        .unwrap()
-        .get(&1)
-        .map(|t| t.duration_since(t0).as_secs_f64() * 1000.0)
-        .unwrap_or(0.0);
+        }))
+        .as_secs_f64()
+        * 1000.0;
     println!("  startup:     {startup_ms:.1} ms");
 
-    send(
-        &mut stdin,
-        json!({"jsonrpc": "2.0", "method": "initialized", "params": {}}),
-    );
+    session.notify(json!({"jsonrpc": "2.0", "method": "initialized", "params": {}}));
 
     let file_uris: Vec<String> = files
         .iter()
         .map(|(path, text)| {
             let uri = format!("file://{path}");
-            send(
-                &mut stdin,
-                json!({
-                    "jsonrpc": "2.0", "method": "textDocument/didOpen",
-                    "params": {
-                        "textDocument": {"uri": uri, "languageId": "sh", "version": 1, "text": text}
-                    }
-                }),
-            );
+            session.notify(json!({
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {"uri": uri, "languageId": "sh", "version": 1, "text": text}
+                }
+            }));
             uri
         })
         .collect();
 
-    // wait for background analysis to settle before measuring
-    thread::sleep(Duration::from_secs(1));
+    // LSP messages are ordered; the response to this request arriving means
+    // all prior didOpen notifications have been processed. Avoids an arbitrary sleep.
+    let last_uri = file_uris.last().unwrap();
+    session.request(json!({
+        "jsonrpc": "2.0",
+        "method": "textDocument/completion",
+        "params": {"textDocument": {"uri": last_uri}, "position": {"line": 0, "character": 0}}
+    }));
 
-    for ((_, text), uri) in files.iter().zip(file_uris.iter()) {
-        send(
-            &mut stdin,
-            json!({
-                "jsonrpc": "2.0", "method": "textDocument/didChange",
-                "params": {
-                    "textDocument": {"uri": uri, "version": 2},
-                    "contentChanges": [{"text": format!("{text}\n# edit\n")}]
-                }
-            }),
-        );
+    for ((_, text), uri) in files.iter().zip(&file_uris) {
+        session.notify(json!({
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+                "textDocument": {"uri": uri, "version": 2},
+                "contentChanges": [{"text": format!("{text}\n# edit\n")}]
+            }
+        }));
     }
+    session.request(json!({
+        "jsonrpc": "2.0",
+        "method": "textDocument/completion",
+        "params": {"textDocument": {"uri": last_uri}, "position": {"line": 0, "character": 0}}
+    }));
 
-    thread::sleep(Duration::from_millis(500));
-
-    let mut req_id: u64 = 2;
-    let mut send_times: HashMap<u64, Instant> = HashMap::new();
+    // Sequential requests: one in-flight at a time so that queuing delay does
+    // not inflate individual latency samples.
+    let methods = ["textDocument/completion", "textDocument/hover"];
+    let mut latencies_ms = Vec::new();
     for uri in &file_uris {
         for line in 0u32..25 {
-            for method in ["textDocument/completion", "textDocument/hover"] {
-                send_times.insert(req_id, Instant::now());
-                send(
-                    &mut stdin,
-                    json!({
-                        "jsonrpc": "2.0", "id": req_id, "method": method,
-                        "params": {
-                            "textDocument": {"uri": uri},
-                            "position": {"line": line, "character": 4}
-                        }
-                    }),
-                );
-                req_id += 1;
+            for method in methods {
+                let d = session.request(json!({
+                    "jsonrpc": "2.0",
+                    "method": method,
+                    "params": {
+                        "textDocument": {"uri": uri},
+                        "position": {"line": line, "character": 4}
+                    }
+                }));
+                latencies_ms.push(d.as_secs_f64() * 1000.0);
             }
         }
     }
+    latencies_ms.sort_by(f64::total_cmp);
 
-    let total_requests = req_id - 2;
-    let deadline = Instant::now() + Duration::from_secs(30);
-    while Instant::now() < deadline {
-        let n = responses.lock().unwrap().len();
-        // +1 because the initialize response (id 1) is also in the map
-        if n >= total_requests as usize + 1 {
-            break;
-        }
-        thread::sleep(Duration::from_millis(50));
-    }
+    let rss_kb = session.rss_kb();
+    drop(session);
 
-    let received = responses.lock().unwrap().clone();
-    let latencies: Vec<f64> = send_times
-        .iter()
-        .filter_map(|(id, t_sent)| {
-            received
-                .get(id)
-                .map(|t_recv| t_recv.duration_since(*t_sent).as_secs_f64() * 1000.0)
-        })
-        .collect();
-
-    drop(stdin);
-    let rss = rss_kb(child.id());
-    child.kill().ok();
-    child.wait().ok();
-
-    if !latencies.is_empty() {
-        let mut s = latencies.clone();
-        s.sort_by(f64::total_cmp);
-        let avg = s.iter().sum::<f64>() / s.len() as f64;
-        let p95 = s[s.len() * 95 / 100];
-        let p99 = s[s.len() * 99 / 100];
-        println!(
-            "  requests:    {}/{} answered",
-            latencies.len(),
-            send_times.len()
-        );
+    if !latencies_ms.is_empty() {
+        let avg = latencies_ms.iter().sum::<f64>() / latencies_ms.len() as f64;
+        let p95 = percentile(&latencies_ms, 95);
+        let p99 = percentile(&latencies_ms, 99);
+        println!("  requests:    {}", latencies_ms.len());
         println!("  latency avg: {avg:.1} ms");
         println!("  latency p95: {p95:.1} ms");
         println!("  latency p99: {p99:.1} ms");
     }
-    println!("  RSS:         {rss} kB  ({:.1} MB)", rss as f64 / 1024.0);
+    println!("  RSS:         {rss_kb} kB  ({:.1} MB)", rss_kb as f64 / 1024.0);
 
-    BenchResult {
-        startup_ms,
-        latencies,
-        rss_kb: rss,
-    }
+    BenchResult { startup_ms, latencies_ms, rss_kb }
 }
 
+// ── Stats ─────────────────────────────────────────────────────────────────────
+
+// Nearest-rank percentile on a sorted slice (p in 0..=100).
 fn percentile(sorted: &[f64], p: usize) -> f64 {
-    sorted[sorted.len() * p / 100]
+    assert!(!sorted.is_empty() && p <= 100);
+    // ceil(p/100 * n) - 1, expressed with integer arithmetic to avoid fp rounding.
+    let idx = ((p * sorted.len()).saturating_sub(1) / 100).min(sorted.len() - 1);
+    sorted[idx]
 }
 
-fn ratio(a: f64, b: f64) -> String {
-    if a > 0.0 {
-        format!("{:.1}x", b / a)
-    } else {
-        "n/a".into()
-    }
+fn ratio_str(a: f64, b: f64) -> String {
+    if a > 0.0 { format!("{:.1}x", b / a) } else { "n/a".into() }
 }
 
-fn print_summary(file_count: usize, r1: &BenchResult, r2: &BenchResult) {
-    let mut lat1 = r1.latencies.clone();
-    let mut lat2 = r2.latencies.clone();
-    lat1.sort_by(f64::total_cmp);
-    lat2.sort_by(f64::total_cmp);
+fn print_summary(file_count: usize, bashls: &BenchResult, bash_ls: &BenchResult) {
+    // latencies_ms is pre-sorted in run_bench
+    let lat1 = &bashls.latencies_ms;
+    let lat2 = &bash_ls.latencies_ms;
 
-    let avg = |v: &[f64]| {
-        if v.is_empty() {
-            0.0
-        } else {
-            v.iter().sum::<f64>() / v.len() as f64
-        }
+    let avg = |v: &[f64]| -> f64 {
+        if v.is_empty() { 0.0 } else { v.iter().sum::<f64>() / v.len() as f64 }
+    };
+    let safe_pct = |v: &[f64], p| -> f64 {
+        if v.is_empty() { 0.0 } else { percentile(v, p) }
     };
 
-    let avg1 = avg(&lat1);
-    let avg2 = avg(&lat2);
-    let p95_1 = if lat1.is_empty() {
-        0.0
-    } else {
-        percentile(&lat1, 95)
-    };
-    let p95_2 = if lat2.is_empty() {
-        0.0
-    } else {
-        percentile(&lat2, 95)
-    };
+    println!(
+        "\n--- summary ({file_count} files, {} requests each) ---",
+        lat1.len()
+    );
+    println!(
+        "{:<22} {:>10} {:>10} {:>16}",
+        "metric", "bashls", "bash-ls", "ratio (b/a)"
+    );
 
-    let total = lat1.len() + lat2.len();
-    println!("\n--- summary ({file_count} files, {total} total requests) ---");
-    println!(
-        "{:<22} {:>10} {:>10} {:>8}",
-        "metric", "bashls", "bash-ls", "ratio"
-    );
-    println!(
-        "{:<22} {:>10.1} {:>10.1} {:>8}",
-        "startup (ms)",
-        r1.startup_ms,
-        r2.startup_ms,
-        ratio(r1.startup_ms, r2.startup_ms)
-    );
-    println!(
-        "{:<22} {:>10.1} {:>10.1} {:>8}",
-        "latency avg (ms)",
-        avg1,
-        avg2,
-        ratio(avg1, avg2)
-    );
-    println!(
-        "{:<22} {:>10.1} {:>10.1} {:>8}",
-        "latency p95 (ms)",
-        p95_1,
-        p95_2,
-        ratio(p95_1, p95_2)
-    );
-    println!(
-        "{:<22} {:>10.1} {:>10.1} {:>8}",
+    let row = |label: &str, a: f64, b: f64| {
+        println!("{:<22} {:>10.1} {:>10.1} {:>16}", label, a, b, ratio_str(a, b));
+    };
+    row("startup (ms)", bashls.startup_ms, bash_ls.startup_ms);
+    row("latency avg (ms)", avg(lat1), avg(lat2));
+    row("latency p95 (ms)", safe_pct(lat1, 95), safe_pct(lat2, 95));
+    row(
         "RSS (MB)",
-        r1.rss_kb as f64 / 1024.0,
-        r2.rss_kb as f64 / 1024.0,
-        ratio(r1.rss_kb as f64, r2.rss_kb as f64)
+        bashls.rss_kb as f64 / 1024.0,
+        bash_ls.rss_kb as f64 / 1024.0,
     );
 }
+
+// ── Entry point ───────────────────────────────────────────────────────────────
 
 fn main() {
     let bashls_bin = env::var("BASHLS_BIN").unwrap_or_else(|_| "./target/release/bashls".into());

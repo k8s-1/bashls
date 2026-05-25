@@ -8,35 +8,24 @@
   <text x="244" y="30" fill="#1f2328" font-size="13" font-weight="600">bashls</text>
 
   <!-- === STARTUP TIME === -->
-  <text x="32" y="62" fill="#1f2328" font-size="16" font-weight="600">Startup</text>
+  <text x="60" y="62" fill="#1f2328" font-size="16" font-weight="600">Startup</text>
 
-  <rect x="32" y="72" width="150" height="24" fill="#0969da" rx="3"/>
-  <text x="188" y="89" fill="#1f2328" font-size="14" font-weight="600">443 ms</text>
+  <rect x="60" y="72" width="150" height="24" fill="#0969da" rx="3"/>
+  <text x="216" y="89" fill="#1f2328" font-size="14" font-weight="600">434 ms</text>
 
-  <rect x="32" y="104" width="4" height="24" fill="#1a7f37" rx="3"/>
-  <text x="42" y="121" fill="#1f2328" font-size="14" font-weight="600">13 ms</text>
+  <rect x="60" y="104" width="6" height="24" fill="#1a7f37" rx="3"/>
+  <text x="72" y="121" fill="#1f2328" font-size="14" font-weight="600">16 ms</text>
 
-  <text x="32" y="160" fill="#1f2328" font-size="14" font-weight="600"><tspan fill="#1a7f37">34×</tspan> faster startup</text>
+  <text x="60" y="160" fill="#1f2328" font-size="14" font-weight="600"><tspan fill="#1a7f37">27×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
-  <text x="310" y="62" fill="#1f2328" font-size="16" font-weight="600">Memory (RSS)</text>
+  <text x="460" y="62" fill="#1f2328" font-size="16" font-weight="600">Memory (RSS)</text>
 
-  <rect x="310" y="72" width="150" height="24" fill="#0969da" rx="3"/>
-  <text x="466" y="89" fill="#1f2328" font-size="14" font-weight="600">275 MB</text>
+  <rect x="460" y="72" width="150" height="24" fill="#0969da" rx="3"/>
+  <text x="616" y="89" fill="#1f2328" font-size="14" font-weight="600">168 MB</text>
 
-  <rect x="310" y="104" width="13" height="24" fill="#1a7f37" rx="3"/>
-  <text x="329" y="121" fill="#1f2328" font-size="14" font-weight="600">25 MB</text>
+  <rect x="460" y="104" width="21" height="24" fill="#1a7f37" rx="3"/>
+  <text x="487" y="121" fill="#1f2328" font-size="14" font-weight="600">24 MB</text>
 
-  <text x="310" y="160" fill="#1f2328" font-size="14" font-weight="600"><tspan fill="#1a7f37">11×</tspan> less memory</text>
-
-  <!-- === LATENCY === -->
-  <text x="588" y="62" fill="#1f2328" font-size="16" font-weight="600">Latency</text>
-
-  <rect x="588" y="72" width="150" height="24" fill="#0969da" rx="3"/>
-  <text x="744" y="89" fill="#1f2328" font-size="14" font-weight="600">3261 ms</text>
-
-  <rect x="588" y="104" width="49" height="24" fill="#1a7f37" rx="3"/>
-  <text x="643" y="121" fill="#1f2328" font-size="14" font-weight="600">1110 ms</text>
-
-  <text x="588" y="160" fill="#1f2328" font-size="14" font-weight="600"><tspan fill="#1a7f37">3×</tspan> lower latency</text>
+  <text x="460" y="160" fill="#1f2328" font-size="14" font-weight="600"><tspan fill="#1a7f37">7×</tspan> less memory</text>
 </svg>
