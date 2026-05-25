@@ -48,12 +48,11 @@ update:
 # run all CI checks
 ci: fmt-check lint audit test
 
-# benchmark startup time and memory
-bench:
-    @echo "=== Startup time ==="
-    hyperfine --warmup 3 -i 'echo "{}" | ./target/release/bashls start'
-    @echo "=== Memory (RSS) ==="
-    /usr/bin/time -v bash -c 'echo "{}" | ./target/release/bashls start' 2>&1 | grep "Maximum resident"
+# run LSP integration benchmark against bash-language-server
+bench: build
+    @[ -d "${CORPUS_DIR:-/tmp/oh-my-bash}" ] || { echo "corpus not found: git clone https://github.com/ohmybash/oh-my-bash ${CORPUS_DIR:-/tmp/oh-my-bash}"; exit 1; }
+    @command -v "${BASH_LS_BIN:-bash-language-server}" > /dev/null 2>&1 || { echo "bash-language-server not found: set BASH_LS_BIN to its path"; exit 1; }
+    cargo run --example lsp_bench --release
 
 # release: bump version, commit, tag, and push
 release version: ci
