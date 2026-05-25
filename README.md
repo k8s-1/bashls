@@ -112,7 +112,7 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 
 ## Limitations
 
-- **No [explainshell](https://explainshell.com) integration.** bash-language-server can show per-flag hover documentation by querying a local explainshell server. Supporting this would require pulling in an HTTP/TLS stack (~50 crates); skipped intentionally to keep the dependency footprint small.
+- **No [explainshell](https://explainshell.com) integration.** Supporting this would require pulling in an HTTP/TLS stack (~50 crates); skipped intentionally to keep the dependency footprint small.
 - **Linux and macOS only.** This is a bash language server — if you're on Windows, use WSL.
 
 ## Benchmarks
