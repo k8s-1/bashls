@@ -9,7 +9,7 @@ A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-la
 
 ## Motivation
 
-My editor logs were complaining about npm not being installed — bash-language-server requires it, and I was looking for a lighter alternative.
+My editor was slowing down. bash-language-server errors had pushed my logs past 1 GB. I wanted something self-contained.
 
 ## Features
 
