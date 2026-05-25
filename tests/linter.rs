@@ -22,7 +22,7 @@ fn executable_not_found_disables_linting() {
 
 #[test]
 fn lints_unquoted_variable() {
-    let mut l = linter();
+    let l = linter();
     let content = "#!/bin/bash\nfoo=$1\necho $foo\n";
     let result = l.lint(URI, content, &[], &[]);
     assert!(!result.diagnostics.is_empty(), "expected SC2086 diagnostic");
@@ -46,7 +46,7 @@ fn lints_unquoted_variable() {
 
 #[test]
 fn lints_uninitialized_variable_produces_code_and_range() {
-    let mut l = linter();
+    let l = linter();
     let content = "#!/bin/bash\necho $undefined_var\n";
     let result = l.lint(URI, content, &[], &[]);
     assert!(!result.diagnostics.is_empty());
@@ -57,7 +57,7 @@ fn lints_uninitialized_variable_produces_code_and_range() {
 
 #[test]
 fn non_file_uri_returns_empty() {
-    let mut l = linter();
+    let l = linter();
     let result = l.lint(
         "webdav://server/script.sh",
         "#!/bin/bash\necho hi\n",
@@ -72,7 +72,7 @@ fn non_file_uri_returns_empty() {
 
 #[test]
 fn clean_script_produces_no_diagnostics() {
-    let mut l = linter();
+    let l = linter();
     let content = "#!/bin/bash\nfoo=\"bar\"\necho \"$foo\"\n";
     let result = l.lint(URI, content, &[], &[]);
     assert!(
@@ -83,7 +83,7 @@ fn clean_script_produces_no_diagnostics() {
 
 #[test]
 fn code_action_created_for_fixable_issue() {
-    let mut l = linter();
+    let l = linter();
     let content = "#!/bin/bash\nfoo=$1\necho $foo\n";
     let result = l.lint(URI, content, &[], &[]);
     assert!(
@@ -100,7 +100,7 @@ fn source_path_arg_passed_to_shellcheck() {
     fs::write(dir.join("sourced.sh"), "sourced_var=1\n").unwrap();
 
     let content = format!("#!/bin/bash\nsource sourced.sh\necho \"$sourced_var\"\n");
-    let mut l = Linter::new(SHELLCHECK.to_string(), true);
+    let l = Linter::new(SHELLCHECK.to_string(), true);
     let source_paths = vec![dir.to_string_lossy().into_owned()];
     let result = l.lint(URI, &content, &source_paths, &[]);
     let codes: Vec<String> = result
