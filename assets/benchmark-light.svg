@@ -11,21 +11,21 @@
   <text x="32" y="60" fill="#1f2328" font-size="14" font-weight="600">Startup</text>
 
   <rect x="32" y="72" width="240" height="24" fill="#0969da" rx="3"/>
-  <text x="278" y="89" fill="#1f2328" font-size="12">335 ms</text>
+  <text x="278" y="89" fill="#1f2328" font-size="12">439 ms</text>
 
-  <rect x="32" y="104" width="9" height="24" fill="#1a7f37" rx="3"/>
-  <text x="47" y="121" fill="#1f2328" font-size="12">13 ms</text>
+  <rect x="32" y="104" width="8" height="24" fill="#1a7f37" rx="3"/>
+  <text x="46" y="121" fill="#1f2328" font-size="12">15 ms</text>
 
-  <text x="32" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">26×</tspan> faster startup</text>
+  <text x="32" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">29×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
   <text x="340" y="60" fill="#1f2328" font-size="14" font-weight="600">Memory (RSS)</text>
 
   <rect x="340" y="72" width="240" height="24" fill="#0969da" rx="3"/>
-  <text x="586" y="89" fill="#1f2328" font-size="12">73 MB</text>
+  <text x="586" y="89" fill="#1f2328" font-size="12">197 MB</text>
 
-  <rect x="340" y="104" width="20" height="24" fill="#1a7f37" rx="3"/>
-  <text x="366" y="121" fill="#1f2328" font-size="12">6 MB</text>
+  <rect x="340" y="104" width="27" height="24" fill="#1a7f37" rx="3"/>
+  <text x="373" y="121" fill="#1f2328" font-size="12">22 MB</text>
 
-  <text x="340" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">12×</tspan> less memory</text>
+  <text x="340" y="156" fill="#1f2328" font-size="12"><tspan font-weight="600" fill="#1a7f37">9×</tspan> less memory</text>
 </svg>
