@@ -83,7 +83,7 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 
 ## Benchmarks
 
-Measured against [bash-language-server](https://github.com/bash-lsp/bash-language-server) 5.6.0 using 50 `.sh` files from [oh-my-bash](https://github.com/ohmybash/oh-my-bash) as a corpus. Startup is measured cold (no prior Node.js activity); 1600 ms is the minimum observed across runs — average was ~2600 ms. See [examples/lsp_bench.rs](examples/lsp_bench.rs) for the full methodology and instructions to reproduce.
+Measured against [bash-language-server](https://github.com/bash-lsp/bash-language-server) 5.6.0 using 50 `.sh` files from [oh-my-bash](https://github.com/ohmybash/oh-my-bash) as a corpus. Startup is measured cold (no prior Node.js activity); 1600 ms is the minimum observed across runs (average ~2600 ms). See [examples/lsp_bench.rs](examples/lsp_bench.rs) for the full methodology and instructions to reproduce.
 
 <p align="center">
   <picture align="center">
