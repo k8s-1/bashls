@@ -5,11 +5,11 @@
 
 A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no Node.js and minimal runtime dependencies.
 
+![bashls demo](assets/demo.gif)
+
 ## Motivation
 
 My editor logs were complaining about npm not being installed — bash-language-server requires it, and I was looking for a lighter alternative.
-
-![bashls demo](assets/demo.gif)
 
 ## Features
 
