@@ -13,8 +13,6 @@ A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-la
   </picture>
 </p>
 
-<p align="center"><sub>Measured with 50 shell scripts (~5300 LOC) from <a href="https://github.com/ohmybash/oh-my-bash">oh-my-bash</a> open and edited. Startup is cold process-to-first-response time. Memory sampled after all files are loaded. Latency is average completion/hover response time.</sub></p>
-
 ## Features
 
 - Hover documentation
