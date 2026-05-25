@@ -14,8 +14,9 @@ Open a GitHub issue. Include:
 1. Fork the repo and create a branch
 2. Make your changes — run `just ci` before submitting
 3. Rebase onto `main` before opening a PR (merge commits are not allowed)
-4. Open a PR with a clear description of what and why
-4. If any commit was written with AI assistance, include a `Co-Authored-By` trailer identifying the model, e.g.:
+4. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages (e.g. `feat:`, `fix:`, `docs:`, `refactor:`)
+5. Open a PR with a clear description of what and why
+6. If any commit was written with AI assistance, include a `Co-Authored-By` trailer identifying the model, e.g.:
    ```
    Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
    ```
