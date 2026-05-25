@@ -1,7 +1,15 @@
 ## Architecture
 
 - `src/main.rs` — entry point; dispatches `start` or `get-options` subcommands
-- `src/server.rs` — LSP request dispatch and handler functions (`handle_hover`, `handle_completion`, `handle_rename`, etc.)
+- `src/lib.rs` — crate root; re-exports all modules
+- `src/server/dispatch.rs` — LSP message loop and request dispatch
+- `src/server/state.rs` — `Server` and `DocumentState` structs
+- `src/handlers/code_action.rs` — code action handler
+- `src/handlers/completion.rs` — completion handler
+- `src/handlers/formatting.rs` — formatting handler
+- `src/handlers/hover.rs` — hover handler
+- `src/handlers/navigation.rs` — goto definition, document highlights
+- `src/handlers/rename.rs` — rename handler
 - `src/analyser.rs` — document store, tree-sitter parsing, symbol lookup
 - `src/parser.rs` — tree-sitter `Parser` initialization for bash
 - `src/config.rs` — reads config from env vars at startup
@@ -9,7 +17,7 @@
 - `src/builtins.rs` — bash builtin list and `is_builtin` lookup
 - `src/reserved_words.rs` — bash reserved word list and `is_reserved_word` lookup
 - `src/shellcheck/` — shellcheck integration (linting)
-- `src/shfmt/` — shfmt integration (formatting)
+- `src/shfmt/` — shfmt integration (formatting); `editorconfig.rs` reads `.editorconfig` for shfmt options
 - `src/snippets.rs` — completion snippets
 - `src/util/declarations.rs` — variable/function declaration extraction
 - `src/util/sourcing.rs` — `source`/`.` command resolution
