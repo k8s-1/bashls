@@ -16,6 +16,7 @@ use lsp_types::{
 use serde_json::json;
 use types::{ShellCheckComment, ShellCheckReplacement, ShellCheckResult};
 
+#[derive(Clone)]
 pub struct Linter {
     pub executable_path: String,
     pub external_sources: bool,
@@ -53,7 +54,7 @@ impl Linter {
     }
 
     pub fn lint(
-        &mut self,
+        &self,
         uri: &str,
         content: &str,
         source_paths: &[String],

@@ -12,6 +12,7 @@ exclude = ["tests/", ".github/", "assets/", "CLAUDE.md", "justfile"]
 
 [dependencies]
 anyhow = "1.0.102"
+crossbeam-channel = "0.5"
 env_logger = "0.11.10"
 log = "0.4.29"
 lsp-server = "0.7.9"

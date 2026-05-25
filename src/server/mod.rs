@@ -15,7 +15,7 @@ use anyhow::Result;
 use lsp_server::{Connection, Message};
 
 use dispatch::{handle_notification, handle_request};
-use state::server_capabilities;
+use state::{LintResult, server_capabilities};
 
 fn check_runtime_deps() {
     let bash_ok = std::process::Command::new("bash")
@@ -109,47 +109,61 @@ pub fn run() -> Result<()> {
         next_request_id: 1000,
     };
 
-    main_loop(&connection, &mut server)?;
+    let (lint_tx, lint_rx) = crossbeam_channel::unbounded::<LintResult>();
+    main_loop(&connection, &mut server, lint_tx, &lint_rx)?;
 
     io_threads.join()?;
     Ok(())
 }
 
-fn main_loop(connection: &Connection, server: &mut Server) -> Result<()> {
-    for msg in &connection.receiver {
-        match msg {
-            Message::Request(req) => {
-                if connection.handle_shutdown(&req)? {
-                    return Ok(());
-                }
-                handle_request(connection, server, req)?;
-            }
-            Message::Notification(not) => {
-                handle_notification(connection, server, not)?;
-            }
-            Message::Response(resp) => {
-                if server.pending_config_request_id.as_ref() == Some(&resp.id) {
-                    server.pending_config_request_id = None;
-                    if let Some(result) = resp.result {
-                        let cfg = result
-                            .as_array()
-                            .and_then(|arr| arr.first())
-                            .cloned()
-                            .unwrap_or(result);
-                        server.update_config(&cfg);
-                        if server.initialized
-                            && let Some(uri) = server.current_document.clone()
-                            && let Some(doc) = server.documents.get(&uri)
-                        {
-                            let content = doc.content.clone();
-                            server.analyze_and_lint(&uri, &content, connection);
+fn main_loop(
+    connection: &Connection,
+    server: &mut Server,
+    lint_tx: crossbeam_channel::Sender<LintResult>,
+    lint_rx: &crossbeam_channel::Receiver<LintResult>,
+) -> Result<()> {
+    loop {
+        crossbeam_channel::select! {
+            recv(connection.receiver) -> msg => {
+                match msg? {
+                    Message::Request(req) => {
+                        if connection.handle_shutdown(&req)? {
+                            return Ok(());
+                        }
+                        handle_request(connection, server, req)?;
+                    }
+                    Message::Notification(not) => {
+                        handle_notification(connection, server, not, &lint_tx)?;
+                    }
+                    Message::Response(resp) => {
+                        if server.pending_config_request_id.as_ref() == Some(&resp.id) {
+                            server.pending_config_request_id = None;
+                            if let Some(result) = resp.result {
+                                let cfg = result
+                                    .as_array()
+                                    .and_then(|arr| arr.first())
+                                    .cloned()
+                                    .unwrap_or(result);
+                                server.update_config(&cfg);
+                                if server.initialized
+                                    && let Some(uri) = server.current_document.clone()
+                                    && let Some(doc) = server.documents.get(&uri)
+                                {
+                                    let content = doc.content.clone();
+                                    server.analyze_and_lint(&uri, &content, connection, &lint_tx);
+                                }
+                            }
                         }
                     }
                 }
             }
+            recv(lint_rx) -> result => {
+                if let Ok(result) = result {
+                    server.apply_lint_result(result, &connection.sender);
+                }
+            }
         }
     }
-    Ok(())
 }
 
 #[cfg(test)]

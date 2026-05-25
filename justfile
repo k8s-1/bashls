@@ -5,6 +5,10 @@ default:
 build:
     cargo build --release
 
+# build and install release binary to ~/.cargo/bin
+install: build
+    cargo install --path . --offline
+
 # check for compile errors without building
 check:
     cargo check

@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
+use crossbeam_channel::Sender;
 use lsp_server::{Connection, Message, Notification};
 use lsp_types::notification::Notification as _;
 use lsp_types::{
-    CodeAction, CompletionOptions, PublishDiagnosticsParams, RenameOptions, ServerCapabilities,
-    TextDocumentSyncCapability, TextDocumentSyncKind, notification::PublishDiagnostics,
+    CodeAction, CompletionOptions, Diagnostic, PublishDiagnosticsParams, RenameOptions,
+    ServerCapabilities, TextDocumentSyncCapability, TextDocumentSyncKind,
+    notification::PublishDiagnostics,
 };
 use serde_json::Value;
 
@@ -14,6 +16,13 @@ use crate::executables::Executables;
 use crate::shellcheck::Linter;
 use crate::shfmt::Formatter;
 use crate::util::fs::uri_to_path;
+
+pub struct LintResult {
+    pub uri: String,
+    pub version: Option<i32>,
+    pub diagnostics: Vec<Diagnostic>,
+    pub code_actions: HashMap<String, CodeAction>,
+}
 
 pub struct DocumentState {
     pub content: String,
@@ -37,31 +46,46 @@ pub struct Server {
 }
 
 impl Server {
-    pub(crate) fn analyze_and_lint(&mut self, uri: &str, content: &str, connection: &Connection) {
-        let mut diagnostics = self.analyser.analyze(uri, content);
+    pub(crate) fn analyze_and_lint(
+        &mut self,
+        uri: &str,
+        content: &str,
+        connection: &Connection,
+        lint_tx: &Sender<LintResult>,
+    ) {
+        let ts_diagnostics = self.analyser.analyze(uri, content);
+        let version = self.documents.get(uri).map(|d| d.version);
 
-        if let Some(ref mut linter) = self.linter {
+        send_diagnostics(&connection.sender, uri, version, ts_diagnostics.clone());
+
+        if let Some(linter) = self.linter.clone() {
             let source_paths = self
                 .workspace_folder
                 .as_ref()
                 .map(|w| vec![uri_to_path(w).to_string_lossy().into_owned()])
                 .unwrap_or_default();
-
             let args = self.config.shellcheck_arguments.clone();
-            let result = linter.lint(uri, content, &source_paths, &args);
-            diagnostics.extend(result.diagnostics);
-            self.code_actions
-                .insert(uri.to_string(), result.code_actions);
+            let uri = uri.to_string();
+            let content = content.to_string();
+            let tx = lint_tx.clone();
+            std::thread::spawn(move || {
+                let result = linter.lint(&uri, &content, &source_paths, &args);
+                let mut diagnostics = ts_diagnostics;
+                diagnostics.extend(result.diagnostics);
+                let _ = tx.send(LintResult {
+                    uri,
+                    version,
+                    diagnostics,
+                    code_actions: result.code_actions,
+                });
+            });
         }
+    }
 
-        let version = self.documents.get(uri).map(|d| d.version);
-        let params = PublishDiagnosticsParams {
-            uri: uri.parse().unwrap(),
-            version,
-            diagnostics,
-        };
-        let notif = Notification::new(PublishDiagnostics::METHOD.to_string(), params);
-        let _ = connection.sender.send(Message::Notification(notif));
+    pub(crate) fn apply_lint_result(&mut self, result: LintResult, sender: &Sender<Message>) {
+        self.code_actions
+            .insert(result.uri.clone(), result.code_actions);
+        send_diagnostics(sender, &result.uri, result.version, result.diagnostics);
     }
 
     pub(crate) fn update_config(&mut self, value: &Value) {
@@ -92,6 +116,21 @@ impl Server {
                 .set_include_all_workspace_symbols(self.config.include_all_workspace_symbols);
         }
     }
+}
+
+fn send_diagnostics(
+    sender: &Sender<Message>,
+    uri: &str,
+    version: Option<i32>,
+    diagnostics: Vec<Diagnostic>,
+) {
+    let params = PublishDiagnosticsParams {
+        uri: uri.parse().unwrap(),
+        version,
+        diagnostics,
+    };
+    let notif = Notification::new(PublishDiagnostics::METHOD.to_string(), params);
+    let _ = sender.send(Message::Notification(notif));
 }
 
 pub(super) fn server_capabilities() -> ServerCapabilities {

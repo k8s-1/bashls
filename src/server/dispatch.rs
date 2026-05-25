@@ -182,6 +182,7 @@ pub(super) fn handle_notification(
     connection: &Connection,
     server: &mut Server,
     not: Notification,
+    lint_tx: &crossbeam_channel::Sender<super::state::LintResult>,
 ) -> Result<()> {
     match not.method.as_str() {
         Initialized::METHOD => {
@@ -247,7 +248,7 @@ pub(super) fn handle_notification(
                 && let Some(doc) = server.documents.get(&uri)
             {
                 let content = doc.content.clone();
-                server.analyze_and_lint(&uri, &content, connection);
+                server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
         DidOpenTextDocument::METHOD => {
@@ -263,7 +264,7 @@ pub(super) fn handle_notification(
             );
             server.current_document = Some(uri.clone());
             if server.initialized {
-                server.analyze_and_lint(&uri, &content, connection);
+                server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
         DidChangeTextDocument::METHOD => {
@@ -285,7 +286,7 @@ pub(super) fn handle_notification(
             );
             server.current_document = Some(uri.clone());
             if server.initialized {
-                server.analyze_and_lint(&uri, &content, connection);
+                server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
         DidCloseTextDocument::METHOD => {
@@ -310,7 +311,7 @@ pub(super) fn handle_notification(
                 && let Some(doc) = server.documents.get(&uri)
             {
                 let content = doc.content.clone();
-                server.analyze_and_lint(&uri, &content, connection);
+                server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
         _ => {}
