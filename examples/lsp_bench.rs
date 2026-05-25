@@ -13,8 +13,8 @@
 // Environment variables:
 //   BASHLS_BIN     path to bashls binary         (default: ./target/release/bashls)
 //   BASH_LS_BIN    path to bash-language-server  (default: bash-language-server)
-//   CORPUS_DIR     root of the .sh corpus         (default: /tmp/oh-my-bash)
-//   CORPUS_FILES   max files to use               (default: 50)
+//   CORPUS_DIR     root of the .sh corpus        (default: /tmp/oh-my-bash)
+//   CORPUS_FILES   max files to use              (default: 50)
 
 use std::{
     collections::HashMap,
