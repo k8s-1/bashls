@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="840" height="190" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="14">
-  <rect width="840" height="190" fill="#0d1117" rx="8"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="190" font-family="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace" font-size="14">
+  <rect width="600" height="190" fill="#0d1117" rx="8"/>
 
   <!-- shared legend -->
   <rect x="32" y="20" width="10" height="10" fill="#388bfd" rx="2"/>
@@ -8,24 +8,24 @@
   <text x="244" y="30" fill="#e6edf3" font-size="13" font-weight="600">bashls</text>
 
   <!-- === STARTUP TIME === -->
-  <text x="60" y="62" fill="#e6edf3" font-size="16" font-weight="600">Startup</text>
+  <text x="50" y="62" fill="#e6edf3" font-size="16" font-weight="600">Startup</text>
 
-  <rect x="60" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="216" y="89" fill="#e6edf3" font-size="14" font-weight="600">434 ms</text>
+  <rect x="50" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
+  <text x="206" y="89" fill="#e6edf3" font-size="14" font-weight="600">434 ms</text>
 
-  <rect x="60" y="104" width="6" height="24" fill="#3fb950" rx="3"/>
-  <text x="72" y="121" fill="#e6edf3" font-size="14" font-weight="600">16 ms</text>
+  <rect x="50" y="104" width="6" height="24" fill="#3fb950" rx="3"/>
+  <text x="62" y="121" fill="#e6edf3" font-size="14" font-weight="600">16 ms</text>
 
-  <text x="60" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">27×</tspan> faster startup</text>
+  <text x="50" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">27×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
-  <text x="460" y="62" fill="#e6edf3" font-size="16" font-weight="600">Memory (RSS)</text>
+  <text x="350" y="62" fill="#e6edf3" font-size="16" font-weight="600">Memory (RSS)</text>
 
-  <rect x="460" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="616" y="89" fill="#e6edf3" font-size="14" font-weight="600">168 MB</text>
+  <rect x="350" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
+  <text x="506" y="89" fill="#e6edf3" font-size="14" font-weight="600">168 MB</text>
 
-  <rect x="460" y="104" width="21" height="24" fill="#3fb950" rx="3"/>
-  <text x="487" y="121" fill="#e6edf3" font-size="14" font-weight="600">24 MB</text>
+  <rect x="350" y="104" width="21" height="24" fill="#3fb950" rx="3"/>
+  <text x="377" y="121" fill="#e6edf3" font-size="14" font-weight="600">24 MB</text>
 
-  <text x="460" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">7×</tspan> less memory</text>
+  <text x="350" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">7×</tspan> less memory</text>
 </svg>
