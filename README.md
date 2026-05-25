@@ -80,7 +80,7 @@ command = "bashls"
   "lsp": {
     "bash-language-server": {
       "binary": {
-        "path": "/path/to/bashls"
+        "path": "bashls",
       }
     }
   }
