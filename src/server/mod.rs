@@ -65,12 +65,11 @@ pub fn run() -> Result<()> {
     let init_params_value = connection.initialize(server_capabilities)?;
     let init_params: lsp_types::InitializeParams = serde_json::from_value(init_params_value)?;
 
-    #[allow(deprecated)]
     let workspace_folder = init_params
-        .root_uri
-        .as_ref()
-        .map(|u| u.to_string())
-        .or_else(|| init_params.root_path.clone().map(|p| format!("file://{p}")));
+        .workspace_folders
+        .as_deref()
+        .and_then(|f| f.first())
+        .map(|f| f.uri.to_string());
 
     let path_var = std::env::var("PATH").unwrap_or_default();
     let executables = Executables::from_path(&path_var);
