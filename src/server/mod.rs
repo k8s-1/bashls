@@ -110,7 +110,7 @@ pub fn run() -> Result<()> {
     };
 
     let (lint_tx, lint_rx) = crossbeam_channel::unbounded::<LintResult>();
-    main_loop(&connection, &mut server, lint_tx, &lint_rx)?;
+    main_loop(&connection, &mut server, &lint_tx, &lint_rx)?;
 
     io_threads.join()?;
     Ok(())
@@ -119,7 +119,7 @@ pub fn run() -> Result<()> {
 fn main_loop(
     connection: &Connection,
     server: &mut Server,
-    lint_tx: crossbeam_channel::Sender<LintResult>,
+    lint_tx: &crossbeam_channel::Sender<LintResult>,
     lint_rx: &crossbeam_channel::Receiver<LintResult>,
 ) -> Result<()> {
     loop {
@@ -133,7 +133,7 @@ fn main_loop(
                         handle_request(connection, server, req)?;
                     }
                     Message::Notification(not) => {
-                        handle_notification(connection, server, not, &lint_tx)?;
+                        handle_notification(connection, server, not, lint_tx)?;
                     }
                     Message::Response(resp) => {
                         if server.pending_config_request_id.as_ref() == Some(&resp.id) {
@@ -150,7 +150,7 @@ fn main_loop(
                                     && let Some(doc) = server.documents.get(&uri)
                                 {
                                     let content = doc.content.clone();
-                                    server.analyze_and_lint(&uri, &content, connection, &lint_tx);
+                                    server.analyze_and_lint(&uri, &content, connection, lint_tx);
                                 }
                             }
                         }

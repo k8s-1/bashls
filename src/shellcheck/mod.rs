@@ -53,6 +53,7 @@ impl Linter {
         }
     }
 
+    #[must_use]
     pub fn lint(
         &self,
         uri: &str,

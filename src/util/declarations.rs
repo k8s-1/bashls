@@ -219,6 +219,7 @@ fn is_defined_variable_in_expression(
 }
 
 /// Port of TypeScript `findDeclarationUsingGlobalSemantics`.
+///
 /// Searches `base_node` (a program root or subshell) for the first declaration
 /// of `word`. `boundary` is updated when a local declaration is found (to stop
 /// searching past it). Returns `(declaration_range, continue_searching)`.
@@ -484,7 +485,8 @@ fn in_ignored_range(ignored: &[Range], n: Node<'_>) -> bool {
 }
 
 /// Port of TypeScript `findDeclarationUsingLocalSemantics`.
-/// Searches `base_node` (a function's compound_statement) for a `local`/`declare`/`typeset`
+///
+/// Searches `base_node` (a function's `compound_statement`) for a `local`/`declare`/`typeset`
 /// declaration of `word`. Returns `(declaration_range, continue_searching)`.
 pub fn find_declaration_using_local_semantics(
     base_node: Node<'_>,
