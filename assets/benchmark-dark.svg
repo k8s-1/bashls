@@ -4,8 +4,8 @@
   <!-- shared legend -->
   <rect x="32" y="20" width="10" height="10" fill="#388bfd" rx="2"/>
   <text x="48" y="30" fill="#e6edf3" font-size="13" font-weight="600">bash-language-server</text>
-  <rect x="250" y="20" width="10" height="10" fill="#3fb950" rx="2"/>
-  <text x="266" y="30" fill="#e6edf3" font-size="13" font-weight="600">bashls</text>
+  <rect x="228" y="20" width="10" height="10" fill="#3fb950" rx="2"/>
+  <text x="244" y="30" fill="#e6edf3" font-size="13" font-weight="600">bashls</text>
 
   <!-- === STARTUP TIME === -->
   <text x="32" y="62" fill="#e6edf3" font-size="16" font-weight="600">Startup</text>
@@ -16,7 +16,7 @@
   <rect x="32" y="104" width="4" height="24" fill="#3fb950" rx="3"/>
   <text x="42" y="121" fill="#e6edf3" font-size="14" font-weight="600">14 ms</text>
 
-  <text x="32" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">34×</tspan> faster startup</text>
+  <text x="32" y="160" fill="#e6edf3" font-size="14" font-weight="600"><tspan fill="#3fb950">32×</tspan> faster startup</text>
 
   <!-- === MEMORY === -->
   <text x="310" y="62" fill="#e6edf3" font-size="16" font-weight="600">Memory (RSS)</text>
