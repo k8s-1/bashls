@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::process::Command;
 
-const GET_OPTIONS_SH: &str = include_str!("../get-options.sh");
+const GET_OPTIONS_SH: &str = include_str!("../../scripts/get-options.sh");
 
 #[must_use]
 pub fn get_command_options(cmd: &str, word: &str) -> Vec<String> {

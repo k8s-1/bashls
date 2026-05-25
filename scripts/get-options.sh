@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 
 # Try and get COMPLETIONSRC using pkg-config
-COMPLETIONSDIR="$(pkg-config --variable=completionsdir bash-completion)"
-
-if (( $? == 0 ))
+if COMPLETIONSDIR="$(pkg-config --variable=completionsdir bash-completion)"
 then
 	COMPLETIONSRC="$(dirname "$COMPLETIONSDIR")/bash_completion"
 else
@@ -19,11 +17,12 @@ else
 fi
 
 # Validate path of COMPLETIONSRC
-if (( $? != 0 )) || [ ! -r "$COMPLETIONSRC" ]
+if [ ! -r "$COMPLETIONSRC" ]
 then
 	exit 1
 fi
 
+# shellcheck source=/dev/null
 source "$COMPLETIONSRC"
 
 COMP_LINE="$*"
@@ -39,7 +38,7 @@ if (( ${#COMPREPLY[@]} == 0 ))
 then
 	# Disabled by default because _longopt executes the program
 	# to get its options.
-	if (( ${BASH_LSP_COMPLETE_LONGOPTS} == 1 ))
+	if (( BASH_LSP_COMPLETE_LONGOPTS == 1 ))
 	then
 		_longopt "${COMP_WORDS[0]}"
 	fi

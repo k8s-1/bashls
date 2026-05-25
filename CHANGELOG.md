@@ -14,12 +14,20 @@
 - Update benchmark numbers (100x startup, 10x memory)
 - Document cold start methodology and conservative 1600 ms figure
 - Replace em dash with parens in benchmark note
+- Add editor configs, limitations, and changelog
+- Add AGENT.md pointing to CLAUDE.md
+- Update CLAUDE.md to reflect refactored server/handlers structure
+- Simplify path for zed
+- Simplify explainshell explain
+- Document conventional commits requirement in CONTRIBUTING.md
 
 ### ⚙️ Miscellaneous Tasks
 
 - Exclude examples from published crate
 - Remove redundant white space char in comment
 - *(bench)* Remove latency measurement
+- Add AGENT.md file to Cargo ignore
+- Move get-options.sh into dedicated scripts directory
 ## [0.2.2] - 2026-05-25
 
 ### 🐛 Bug Fixes

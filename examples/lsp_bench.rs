@@ -99,7 +99,12 @@ impl LspSession {
         let (tx, rx) = mpsc::channel();
         thread::spawn(move || reader_thread(stdout, tx));
 
-        LspSession { child, stdin, rx, next_id: 1 }
+        LspSession {
+            child,
+            stdin,
+            rx,
+            next_id: 1,
+        }
     }
 
     fn notify(&mut self, msg: Value) {
@@ -114,7 +119,8 @@ impl LspSession {
         let t_sent = Instant::now();
         self.stdin.write_all(&lsp_encode(&msg)).unwrap();
         self.stdin.flush().unwrap();
-        self.wait_for(id, Duration::from_secs(30)).duration_since(t_sent)
+        self.wait_for(id, Duration::from_secs(30))
+            .duration_since(t_sent)
     }
 
     fn wait_for(&self, id: u64, timeout: Duration) -> Instant {
@@ -223,7 +229,10 @@ fn run_bench(program: &str, args: &[&str], label: &str, files: &[(String, String
     let rss_kb = session.rss_kb();
     drop(session);
 
-    println!("  RSS:         {rss_kb} kB  ({:.1} MB)", rss_kb as f64 / 1024.0);
+    println!(
+        "  RSS:         {rss_kb} kB  ({:.1} MB)",
+        rss_kb as f64 / 1024.0
+    );
 
     BenchResult { startup_ms, rss_kb }
 }
@@ -231,7 +240,11 @@ fn run_bench(program: &str, args: &[&str], label: &str, files: &[(String, String
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 fn ratio_str(a: f64, b: f64) -> String {
-    if a > 0.0 { format!("{:.1}x", b / a) } else { "n/a".into() }
+    if a > 0.0 {
+        format!("{:.1}x", b / a)
+    } else {
+        "n/a".into()
+    }
 }
 
 fn print_summary(file_count: usize, bashls: &BenchResult, bash_ls: &BenchResult) {
@@ -242,7 +255,13 @@ fn print_summary(file_count: usize, bashls: &BenchResult, bash_ls: &BenchResult)
     );
 
     let row = |label: &str, a: f64, b: f64| {
-        println!("{:<22} {:>10.1} {:>10.1} {:>16}", label, a, b, ratio_str(a, b));
+        println!(
+            "{:<22} {:>10.1} {:>10.1} {:>16}",
+            label,
+            a,
+            b,
+            ratio_str(a, b)
+        );
     };
     row("startup (ms)", bashls.startup_ms, bash_ls.startup_ms);
     row(
