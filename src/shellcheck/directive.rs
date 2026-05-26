@@ -11,33 +11,18 @@ pub fn parse_shellcheck_directive(line: &str) -> Vec<Directive> {
         return vec![];
     };
 
-    let commands: Vec<&str> = rest.split_whitespace().filter(|s| !s.is_empty()).collect();
-
-    let mut directives = Vec::new();
-    for command in commands {
-        let Some((type_key, value)) = command.split_once('=') else {
-            continue;
-        };
-        match type_key {
-            "source" => {
-                directives.push(Directive::Source {
-                    path: value.to_string(),
-                });
+    rest.split_whitespace()
+        .filter(|s| !s.is_empty())
+        .filter_map(|command| {
+            let (type_key, value) = command.split_once('=')?;
+            match type_key {
+                "source" => Some(Directive::Source { path: value.to_string() }),
+                "source-path" => Some(Directive::SourcePath { path: value.to_string() }),
+                "disable" => Some(Directive::Disable { rules: parse_rules(value) }),
+                _ => None,
             }
-            "source-path" => {
-                directives.push(Directive::SourcePath {
-                    path: value.to_string(),
-                });
-            }
-            "disable" => {
-                directives.push(Directive::Disable {
-                    rules: parse_rules(value),
-                });
-            }
-            _ => {}
-        }
-    }
-    directives
+        })
+        .collect()
 }
 
 fn find_directive_rest(line: &str) -> Option<&str> {
