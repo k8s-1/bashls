@@ -15,9 +15,15 @@ pub fn parse_shellcheck_directive(line: &str) -> Vec<Directive> {
         .filter_map(|command| {
             let (type_key, value) = command.split_once('=')?;
             match type_key {
-                "source" => Some(Directive::Source { path: value.to_string() }),
-                "source-path" => Some(Directive::SourcePath { path: value.to_string() }),
-                "disable" => Some(Directive::Disable { rules: parse_rules(value) }),
+                "source" => Some(Directive::Source {
+                    path: value.to_string(),
+                }),
+                "source-path" => Some(Directive::SourcePath {
+                    path: value.to_string(),
+                }),
+                "disable" => Some(Directive::Disable {
+                    rules: parse_rules(value),
+                }),
                 _ => None,
             }
         })
