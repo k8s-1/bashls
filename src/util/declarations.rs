@@ -77,9 +77,12 @@ fn get_local_symbol_from_child(
 ) -> Option<SymbolInformation> {
     if node.kind() == "declaration_command" {
         let mut cursor = node.walk();
-        node.children(&mut cursor)
-            .find(|c| c.kind() == "variable_assignment")
-            .and_then(|c| node_to_symbol_information(c, uri, source))
+        for child in node.children(&mut cursor) {
+            if child.kind() == "variable_assignment" {
+                return node_to_symbol_information(child, uri, source);
+            }
+        }
+        None
     } else if node.kind() == "for_statement" {
         let var_node = node.child(1)?;
         if var_node.kind() == "variable_name" {
