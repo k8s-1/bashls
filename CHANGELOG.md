@@ -1,3 +1,13 @@
+## [unreleased]
+
+### 🚜 Refactor
+
+- Replace manual accumulation loops with iterator chains
+- Drop redundant filter in parse_shellcheck_directive
+
+### ◀️ Revert
+
+- Restore loop in get_local_symbol_from_child
 ## [0.2.3] - 2026-05-25
 
 ### 🐛 Bug Fixes
@@ -29,6 +39,7 @@
 - *(bench)* Remove latency measurement
 - Add AGENT.md file to Cargo ignore
 - Move get-options.sh into dedicated scripts directory
+- Bump version to 0.2.3
 ## [0.2.2] - 2026-05-25
 
 ### 🐛 Bug Fixes
