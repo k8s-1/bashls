@@ -12,7 +12,6 @@ pub fn parse_shellcheck_directive(line: &str) -> Vec<Directive> {
     };
 
     rest.split_whitespace()
-        .filter(|s| !s.is_empty())
         .filter_map(|command| {
             let (type_key, value) = command.split_once('=')?;
             match type_key {
