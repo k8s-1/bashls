@@ -112,10 +112,10 @@ where
     F: FnMut(Node<'tree>) -> bool,
 {
     if callback(node) {
-        let mut cursor = node.walk();
-        let children: Vec<Node<'tree>> = node.children(&mut cursor).collect();
-        for child in children {
-            for_each(child, callback);
+        for i in 0..node.child_count() as u32 {
+            if let Some(child) = node.child(i) {
+                for_each(child, callback);
+            }
         }
     }
 }
