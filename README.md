@@ -100,9 +100,9 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 
 | Setting (`bashIde.*`) | Default | Description |
 |---|---|---|
-| `shellcheckPath` | `shellcheck` | Path to shellcheck binary. Set to empty string to disable. |
+| `shellcheckPath` | `shellcheck` | Path to shellcheck binary. |
 | `shellcheckArguments` | `[]` | Additional arguments passed to [shellcheck](https://github.com/koalaman/shellcheck). |
-| `shfmt.path` | `shfmt` | Path to shfmt binary. Set to empty string to disable. |
+| `shfmt.path` | `shfmt` | Path to shfmt binary. |
 | `shfmt.*` | | See [shfmt](https://github.com/mvdan/sh) for remaining options. |
 | `globPattern` | `**/*@(.sh\|.inc\|.bash\|.command)` | Files the server treats as bash. |
 | `backgroundAnalysisMaxFiles` | `500` | Max files to analyse in background for workspace-wide features. |
