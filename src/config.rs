@@ -6,7 +6,6 @@ pub struct Config {
     pub background_analysis_max_files: usize,
     pub enable_source_error_diagnostics: bool,
     pub glob_pattern: String,
-    pub log_level: String,
     pub include_all_workspace_symbols: bool,
     pub shellcheck_external_sources: bool,
     pub shellcheck_arguments: Vec<String>,
@@ -20,7 +19,6 @@ impl Default for Config {
             background_analysis_max_files: 500,
             enable_source_error_diagnostics: false,
             glob_pattern: "**/*@(.sh|.inc|.bash|.command)".to_string(),
-            log_level: "info".to_string(),
             include_all_workspace_symbols: false,
             shellcheck_external_sources: true,
             shellcheck_arguments: vec![],
@@ -89,9 +87,6 @@ impl Config {
         }
         if let Ok(v) = std::env::var("INCLUDE_ALL_WORKSPACE_SYMBOLS") {
             cfg.include_all_workspace_symbols = v == "true" || v == "1";
-        }
-        if let Ok(v) = std::env::var("BASH_IDE_LOG_LEVEL") {
-            cfg.log_level = v;
         }
         if let Ok(v) = std::env::var("SHFMT_PATH") {
             cfg.shfmt.path = v;

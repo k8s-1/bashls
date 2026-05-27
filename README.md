@@ -108,7 +108,6 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `backgroundAnalysisMaxFiles` | `500` | Max files to analyse in background for workspace-wide features. |
 | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
 | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
-| `logLevel` | `info` | Log level. |
 
 ## Limitations
 
