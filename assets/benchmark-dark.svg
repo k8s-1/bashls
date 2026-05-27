@@ -11,7 +11,7 @@
   <text x="50" y="62" fill="#e6edf3" font-size="16" font-weight="600">Startup</text>
 
   <rect x="50" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="206" y="89" fill="#e6edf3" font-size="14" font-weight="600">1600 ms</text>
+  <text x="206" y="89" fill="#e6edf3" font-size="14" font-weight="600">1500 ms</text>
 
   <rect x="50" y="104" width="4" height="24" fill="#3fb950" rx="3"/>
   <text x="60" y="121" fill="#e6edf3" font-size="14" font-weight="600">15 ms</text>
@@ -22,7 +22,7 @@
   <text x="350" y="62" fill="#e6edf3" font-size="16" font-weight="600">Memory (RSS)</text>
 
   <rect x="350" y="72" width="150" height="24" fill="#388bfd" rx="3"/>
-  <text x="506" y="89" fill="#e6edf3" font-size="14" font-weight="600">116 MB</text>
+  <text x="506" y="89" fill="#e6edf3" font-size="14" font-weight="600">120 MB</text>
 
   <rect x="350" y="104" width="16" height="24" fill="#3fb950" rx="3"/>
   <text x="372" y="121" fill="#e6edf3" font-size="14" font-weight="600">12 MB</text>
