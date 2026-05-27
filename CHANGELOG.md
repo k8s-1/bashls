@@ -1,9 +1,30 @@
-## [unreleased]
+## [0.2.4] - 2026-05-27
+
+### 🐛 Bug Fixes
+
+- Use inclusive bounds in in_ignored_range for single-line scopes
+- Eliminate two panic paths in URI handling
 
 ### 🚜 Refactor
 
 - Replace manual accumulation loops with iterator chains
 - Drop redundant filter in parse_shellcheck_directive
+
+### ⚡ Performance
+
+- Avoid heap allocation in is_variable_in_read_command
+- Avoid Vec allocation in for_each node traversal
+- Use HashSet for visited URI tracking in source resolution
+
+### ⚙️ Miscellaneous Tasks
+
+- Update file(s): CHANGELOG.md
+- Format shellcheck directive
+- Simplify CRATES.md description
+- Improve readability of completions logic
+- Update file(s): Cargo.lock
+- Precompute lowercase query in fuzzy search
+- Deduplicate point computation in word_at_point
 
 ### ◀️ Revert
 
