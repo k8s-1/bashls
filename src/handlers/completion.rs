@@ -10,6 +10,11 @@ use super::deduplicate_symbols;
 
 const PARAMETER_EXPANSION_PREFIXES: &[&str] = &["$", "${"];
 
+const DATA_TYPE_BUILTIN: u64 = 0;
+const DATA_TYPE_EXECUTABLE: u64 = 1;
+const DATA_TYPE_KEYWORD: u64 = 2;
+const DATA_TYPE_SYMBOL: u64 = 3;
+
 pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<CompletionItem> {
     let word = server
         .analyser
@@ -34,7 +39,7 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
                     .map(|opt| CompletionItem {
                         label: opt,
                         kind: Some(CompletionItemKind::CONSTANT),
-                        data: Some(json!({ "type": 3 })),
+                        data: Some(json!({ "type": DATA_TYPE_SYMBOL })),
                         ..Default::default()
                     })
                     .collect();
@@ -86,7 +91,7 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
         .map(|w| CompletionItem {
             label: w.to_string(),
             kind: Some(CompletionItemKind::KEYWORD),
-            data: Some(json!({ "type": 2 })),
+            data: Some(json!({ "type": DATA_TYPE_KEYWORD })),
             ..Default::default()
         })
         .chain(symbol_completions)
@@ -99,14 +104,14 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
                 .map(|e| CompletionItem {
                     label: e.to_string(),
                     kind: Some(CompletionItemKind::FUNCTION),
-                    data: Some(json!({ "type": 1 })),
+                    data: Some(json!({ "type": DATA_TYPE_EXECUTABLE })),
                     ..Default::default()
                 }),
         )
         .chain(builtins::LIST.iter().map(|b| CompletionItem {
             label: b.to_string(),
             kind: Some(CompletionItemKind::FUNCTION),
-            data: Some(json!({ "type": 0 })),
+            data: Some(json!({ "type": DATA_TYPE_BUILTIN })),
             ..Default::default()
         }))
         .chain(get_snippets())
@@ -120,13 +125,14 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
 }
 
 pub fn handle_completion_resolve(mut item: CompletionItem) -> CompletionItem {
-    let data_type = item
+    let item_type = item
         .data
         .as_ref()
         .and_then(|d| d.get("type"))
         .and_then(serde_json::Value::as_u64);
 
-    if let Some(0..=2) = data_type
+    // builtins, executables, and keywords have shell documentation; user symbols do not
+    if let Some(DATA_TYPE_BUILTIN..=DATA_TYPE_KEYWORD) = item_type
         && let Ok(Some(doc)) = get_shell_documentation(&item.label)
     {
         item.documentation = Some(lsp_types::Documentation::MarkupContent(
@@ -148,7 +154,7 @@ pub fn symbol_to_completion(sym: SymbolInformation) -> CompletionItem {
     CompletionItem {
         label: sym.name,
         kind,
-        data: Some(json!({ "type": 3 })),
+        data: Some(json!({ "type": DATA_TYPE_SYMBOL })),
         ..Default::default()
     }
 }
