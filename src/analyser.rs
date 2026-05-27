@@ -215,8 +215,9 @@ impl Analyser {
         if query.is_empty() {
             return all;
         }
+        let q = query.to_lowercase();
         all.into_iter()
-            .filter(|s| s.name.to_lowercase().contains(&query.to_lowercase()))
+            .filter(|s| s.name.to_lowercase().contains(&q))
             .collect()
     }
 
