@@ -574,24 +574,24 @@ impl Analyser {
                 .cloned()
                 .collect();
         }
-        let mut linked: Vec<String> = Vec::new();
+        let mut linked: HashSet<String> = HashSet::new();
         let mut changed = true;
         while changed {
             changed = false;
             for (analyzed_uri, doc) in &self.docs {
-                if analyzed_uri.as_str() == uri || linked.contains(analyzed_uri) {
+                if analyzed_uri.as_str() == uri || linked.contains(analyzed_uri.as_str()) {
                     continue;
                 }
                 for sourced in &doc.sourced_uris {
-                    if sourced.as_str() == uri || linked.contains(sourced) {
-                        linked.push(analyzed_uri.clone());
+                    if sourced.as_str() == uri || linked.contains(sourced.as_str()) {
+                        linked.insert(analyzed_uri.clone());
                         changed = true;
                         break;
                     }
                 }
             }
         }
-        linked
+        linked.into_iter().collect()
     }
 
     #[must_use]
@@ -617,20 +617,18 @@ impl Analyser {
     }
 
     fn find_all_sourced_uris(&self, uri: &str) -> Vec<String> {
-        let mut result = Vec::new();
+        let mut result = HashSet::new();
         self.collect_sourced_uris(uri, &mut result);
-        result
+        result.into_iter().collect()
     }
 
-    fn collect_sourced_uris(&self, uri: &str, result: &mut Vec<String>) {
+    fn collect_sourced_uris(&self, uri: &str, result: &mut HashSet<String>) {
         let Some(doc) = self.docs.get(uri) else {
             return;
         };
-        let sourced: Vec<String> = doc.sourced_uris.iter().cloned().collect();
-        for sourced_uri in sourced {
-            if !result.contains(&sourced_uri) {
-                result.push(sourced_uri.clone());
-                self.collect_sourced_uris(&sourced_uri, result);
+        for sourced_uri in &doc.sourced_uris {
+            if result.insert(sourced_uri.clone()) {
+                self.collect_sourced_uris(sourced_uri, result);
             }
         }
     }
