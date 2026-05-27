@@ -56,12 +56,11 @@ pub fn is_variable_in_read_command(node: Node<'_>, source: &[u8]) -> bool {
     if first.utf8_text(source).unwrap_or("") != "read" {
         return false;
     }
-    let prev_text = node
+    let prev = node
         .prev_sibling()
         .and_then(|s| s.utf8_text(source).ok())
-        .unwrap_or("")
-        .to_string();
-    !regex_is_flag_with_arg(&prev_text)
+        .unwrap_or("");
+    !regex_is_flag_with_arg(prev)
 }
 
 fn regex_is_flag_with_arg(s: &str) -> bool {
