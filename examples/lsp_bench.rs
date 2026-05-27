@@ -42,24 +42,27 @@ fn lsp_encode(value: &Value) -> Vec<u8> {
     out
 }
 
+fn read_content_length(reader: &mut BufReader<std::process::ChildStdout>) -> Option<usize> {
+    let mut content_length = 0usize;
+    loop {
+        let mut line = String::new();
+        match reader.read_line(&mut line) {
+            Ok(0) | Err(_) => return None,
+            _ => {}
+        }
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            return Some(content_length);
+        }
+        if let Some(v) = trimmed.strip_prefix("Content-Length:") {
+            content_length = v.trim().parse().unwrap_or(0);
+        }
+    }
+}
+
 fn reader_thread(stdout: std::process::ChildStdout, tx: mpsc::Sender<(u64, Instant)>) {
     let mut reader = BufReader::new(stdout);
-    loop {
-        let mut content_length = 0usize;
-        loop {
-            let mut line = String::new();
-            match reader.read_line(&mut line) {
-                Ok(0) | Err(_) => return,
-                _ => {}
-            }
-            let trimmed = line.trim();
-            if trimmed.is_empty() {
-                break;
-            }
-            if let Some(v) = trimmed.strip_prefix("Content-Length:") {
-                content_length = v.trim().parse().unwrap_or(0);
-            }
-        }
+    while let Some(content_length) = read_content_length(&mut reader) {
         if content_length == 0 {
             continue;
         }
