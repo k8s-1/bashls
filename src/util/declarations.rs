@@ -481,7 +481,7 @@ fn in_ignored_range(ignored: &[Range], n: Node<'_>) -> bool {
     let end_row = n.end_position().row;
     ignored
         .iter()
-        .any(|r| start_row > r.start.line as usize && end_row < r.end.line as usize)
+        .any(|r| start_row >= r.start.line as usize && end_row <= r.end.line as usize)
 }
 
 /// Port of TypeScript `findDeclarationUsingLocalSemantics`.
@@ -612,5 +612,24 @@ mod tests {
         let (tree, uri) = parse(content);
         let decls = get_all_declarations_in_tree(&tree, &uri, content.as_bytes());
         assert!(decls.is_empty(), "{decls:?}");
+    }
+
+    #[test]
+    fn occurrences_excludes_local_in_single_line_function() {
+        // Highlighting the outer x=1 should not also highlight x inside the function body —
+        // that x is a separate local variable. When the whole function is on one line the scope
+        // range has start_row == end_row
+        let content = "x=1\nfoo() { local x=2; echo $x; }\n";
+        let (tree, _uri) = parse(content);
+        let ranges = find_occurrences_within_tree(
+            tree.root_node(),
+            content.as_bytes(),
+            "x",
+            lsp_types::SymbolKind::VARIABLE,
+            None,
+            None,
+        );
+        assert_eq!(ranges.len(), 1, "expected only outer x=1, got {ranges:?}");
+        assert_eq!(ranges[0].start.line, 0);
     }
 }
