@@ -189,7 +189,9 @@ impl Analyser {
                     && let Some(ref sourced) = sc.uri
                 {
                     return vec![Location {
-                        uri: sourced.parse().unwrap_or_else(|_| uri.parse().unwrap()),
+                        uri: sourced
+                            .parse()
+                            .unwrap_or_else(|_| "file:///".parse().unwrap()),
                         range: Range {
                             start: Position::new(0, 0),
                             end: Position::new(0, 0),
@@ -513,7 +515,7 @@ impl Analyser {
             if let Some(decl_uri_str) = found_uri {
                 let decl_uri: Uri = decl_uri_str
                     .parse()
-                    .unwrap_or_else(|_| uri.parse().unwrap());
+                    .unwrap_or_else(|_| "file:///".parse().unwrap());
                 return (
                     decl_range.map(|r| Location {
                         uri: decl_uri,

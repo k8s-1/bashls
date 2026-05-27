@@ -7,7 +7,12 @@ pub fn uri_to_path(uri: &str) -> PathBuf {
 
 #[must_use]
 pub fn uri_to_path_opt(uri: &str) -> Option<PathBuf> {
-    let path = uri.strip_prefix("file://")?;
+    let rest = uri.strip_prefix("file://")?;
+    let path = if rest.starts_with('/') {
+        rest
+    } else {
+        rest.strip_prefix("localhost")?
+    };
     let decoded = percent_decode(path);
     Some(PathBuf::from(decoded))
 }
@@ -146,6 +151,14 @@ mod tests {
         assert_eq!(
             uri_to_path("/already/a/path"),
             PathBuf::from("/already/a/path")
+        );
+    }
+
+    #[test]
+    fn localhost_authority_uri_resolves_correctly() {
+        assert_eq!(
+            uri_to_path_opt("file://localhost/path/to/file.sh"),
+            Some(PathBuf::from("/path/to/file.sh"))
         );
     }
 }
