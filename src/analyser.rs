@@ -160,16 +160,11 @@ impl Analyser {
     #[must_use]
     pub fn word_at_point(&self, uri: &str, line: u32, col: u32) -> Option<String> {
         let doc = self.docs.get(uri)?;
-        let node = doc.tree.root_node().descendant_for_point_range(
-            position_to_point(Position {
-                line,
-                character: col,
-            }),
-            position_to_point(Position {
-                line,
-                character: col,
-            }),
-        )?;
+        let pt = position_to_point(Position {
+            line,
+            character: col,
+        });
+        let node = doc.tree.root_node().descendant_for_point_range(pt, pt)?;
         if node.child_count() > 0 {
             return None;
         }
