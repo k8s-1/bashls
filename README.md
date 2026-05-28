@@ -3,13 +3,13 @@
 [![CI](https://github.com/k8s-1/bashls/actions/workflows/ci.yml/badge.svg)](https://github.com/k8s-1/bashls/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/bashls.svg)](https://crates.io/crates/bashls)
 
-A Rust alternative to [bash-language-server](https://github.com/bash-lsp/bash-language-server), shipped as a single binary with no Node.js and minimal runtime dependencies.
+A Bash language server (LSP) written in Rust. Provides IDE features — completions, hover, diagnostics, formatting, rename, and go-to-definition — for shell scripts in any LSP-compatible editor (Neovim, Helix, Zed, Emacs).
 
-![bashls demo](assets/demo.gif)
+![bashls bash language server demo](assets/demo.gif)
 
 ## Motivation
 
-bash-language-server errors had pushed my logs past 1 GB. My editor was slowing down. I wanted something self-contained.
+[bash-language-server](https://github.com/bash-lsp/bash-language-server) errors had pushed my logs past 1 GB. My editor was slowing down. I wanted something self-contained.
 
 ## Features
 
