@@ -21,7 +21,6 @@ struct AnalyzedDocument {
     source: String,
     tree: Tree,
     global_declarations: GlobalDeclarations,
-    sourced_uris: HashSet<String>,
     source_commands: Vec<SourceCommand>,
 }
 
@@ -78,11 +77,6 @@ impl Analyser {
         let source_commands =
             get_source_commands(&tree, uri, self.workspace_folder.as_deref(), source_bytes);
 
-        let sourced_uris: HashSet<String> = source_commands
-            .iter()
-            .filter_map(|sc| sc.uri.clone())
-            .collect();
-
         if !self.include_all_workspace_symbols {
             for sc in &source_commands {
                 if let Some(ref err) = sc.error {
@@ -113,7 +107,6 @@ impl Analyser {
                 source: source.to_string(),
                 tree,
                 global_declarations,
-                sourced_uris,
                 source_commands: valid_source_commands,
             },
         );
@@ -587,7 +580,7 @@ impl Analyser {
                 if analyzed_uri.as_str() == uri || linked.contains(analyzed_uri.as_str()) {
                     continue;
                 }
-                for sourced in &doc.sourced_uris {
+                for sourced in doc.source_commands.iter().filter_map(|sc| sc.uri.as_ref()) {
                     if sourced.as_str() == uri || linked.contains(sourced.as_str()) {
                         linked.insert(analyzed_uri.clone());
                         changed = true;
@@ -631,7 +624,7 @@ impl Analyser {
         let Some(doc) = self.docs.get(uri) else {
             return;
         };
-        for sourced_uri in &doc.sourced_uris {
+        for sourced_uri in doc.source_commands.iter().filter_map(|sc| sc.uri.as_ref()) {
             if result.insert(sourced_uri.clone()) {
                 self.collect_sourced_uris(sourced_uri, result);
             }

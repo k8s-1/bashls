@@ -86,8 +86,11 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
         return symbol_completions;
     }
 
-    let mut all: Vec<CompletionItem> = reserved_words::LIST
+    let prefix = word.as_deref().unwrap_or("");
+
+    reserved_words::LIST
         .iter()
+        .filter(|w| w.starts_with(prefix))
         .map(|w| CompletionItem {
             label: w.to_string(),
             kind: Some(CompletionItemKind::KEYWORD),
@@ -100,7 +103,7 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
                 .executables
                 .list()
                 .into_iter()
-                .filter(|e| !builtins::is_builtin(e))
+                .filter(|e| !builtins::is_builtin(e) && e.starts_with(prefix))
                 .map(|e| CompletionItem {
                     label: e.to_string(),
                     kind: Some(CompletionItemKind::FUNCTION),
@@ -108,20 +111,23 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
                     ..Default::default()
                 }),
         )
-        .chain(builtins::LIST.iter().map(|b| CompletionItem {
-            label: b.to_string(),
-            kind: Some(CompletionItemKind::FUNCTION),
-            data: Some(json!({ "type": DATA_TYPE_BUILTIN })),
-            ..Default::default()
-        }))
-        .chain(get_snippets())
-        .collect();
-
-    if let Some(ref w) = word {
-        all.retain(|item| item.label.starts_with(w.as_str()));
-    }
-
-    all
+        .chain(
+            builtins::LIST
+                .iter()
+                .filter(|b| b.starts_with(prefix))
+                .map(|b| CompletionItem {
+                    label: b.to_string(),
+                    kind: Some(CompletionItemKind::FUNCTION),
+                    data: Some(json!({ "type": DATA_TYPE_BUILTIN })),
+                    ..Default::default()
+                }),
+        )
+        .chain(
+            get_snippets()
+                .into_iter()
+                .filter(|s| s.label.starts_with(prefix)),
+        )
+        .collect()
 }
 
 pub fn handle_completion_resolve(mut item: CompletionItem) -> CompletionItem {
