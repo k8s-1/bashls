@@ -265,7 +265,7 @@ impl Analyser {
         let url: Uri = uri.parse().unwrap_or_else(|_| "file:///".parse().unwrap());
         let source = doc.source.as_bytes();
         let mut locations = Vec::new();
-        let mut seen_ranges: Vec<Range> = Vec::new();
+        let mut seen_ranges: HashSet<Range> = HashSet::new();
 
         for_each(doc.tree.root_node(), &mut |n| {
             let named_node = if is_reference(n) {
@@ -279,8 +279,7 @@ impl Analyser {
                 let text = named.utf8_text(source).unwrap_or("");
                 if text == word {
                     let range = node_range(named);
-                    if !seen_ranges.contains(&range) {
-                        seen_ranges.push(range);
+                    if seen_ranges.insert(range) {
                         locations.push(Location {
                             uri: url.clone(),
                             range,
