@@ -41,7 +41,7 @@ fn executable_not_found_disables_formatting() {
 
 #[test]
 fn formats_valid_script_returns_text_edit() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "if true; then\necho hi\nfi\n";
     let result = f
         .format(URI, content, Some(&opts(true, 4)), &default_config())
@@ -53,7 +53,7 @@ fn formats_valid_script_returns_text_edit() {
 
 #[test]
 fn already_formatted_script_returns_same_content() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "#!/bin/bash\necho \"hello\"\n";
     let result = f
         .format(URI, content, Some(&opts(true, 2)), &default_config())
@@ -68,7 +68,7 @@ fn already_formatted_script_returns_same_content() {
 
 #[test]
 fn parse_error_returns_err() {
-    let mut f = formatter();
+    let f = formatter();
     let broken = "if then\n";
     let result = f.format(URI, broken, None, &default_config());
     assert!(result.is_err(), "parse error should return Err");
@@ -76,7 +76,7 @@ fn parse_error_returns_err() {
 
 #[test]
 fn insert_spaces_true_tab_size_4_passes_i4() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "if true; then\necho hi\nfi\n";
     let result = f
         .format(URI, content, Some(&opts(true, 4)), &default_config())
@@ -90,7 +90,7 @@ fn insert_spaces_true_tab_size_4_passes_i4() {
 
 #[test]
 fn insert_spaces_false_uses_tabs() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "if true; then\necho hi\nfi\n";
     let result = f
         .format(URI, content, Some(&opts(false, 4)), &default_config())
@@ -101,7 +101,7 @@ fn insert_spaces_false_uses_tabs() {
 
 #[test]
 fn binary_next_line_flag() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "echo a \\\n  b\n";
     let config = ShfmtConfig {
         binary_next_line: true,
@@ -116,7 +116,7 @@ fn binary_next_line_flag() {
 
 #[test]
 fn switch_case_indent_flag() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "case $x in\na) echo a ;;\nesac\n";
     let config = ShfmtConfig {
         case_indent: true,
@@ -135,7 +135,7 @@ fn switch_case_indent_flag() {
 
 #[test]
 fn space_redirects_flag() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "echo hi >file\n";
     let config = ShfmtConfig {
         space_redirects: true,
@@ -155,7 +155,7 @@ fn space_redirects_flag() {
 
 #[test]
 fn function_next_line_flag() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "foo() {\n  echo hi\n}\n";
     let config = ShfmtConfig {
         func_next_line: true,
@@ -171,7 +171,7 @@ fn function_next_line_flag() {
 
 #[test]
 fn language_dialect_posix() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "echo hi\n";
     let config = ShfmtConfig {
         language_dialect: "posix".to_string(),
@@ -186,7 +186,7 @@ fn language_dialect_posix() {
 
 #[test]
 fn wrong_dialect_on_bash_syntax_returns_err() {
-    let mut f = formatter();
+    let f = formatter();
     let content = "foo() { echo hi; }\n";
     let config = ShfmtConfig {
         language_dialect: "posix".to_string(),
@@ -211,7 +211,7 @@ fn editorconfig_respected() {
     fs::write(&script, content).unwrap();
     let file_uri = format!("file://{}", script.display());
 
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         ignore_editorconfig: false,
         ..Default::default()
@@ -229,7 +229,7 @@ fn editorconfig_respected() {
 
 #[test]
 fn fixture_default_formats_with_tabs() {
-    let mut f = formatter();
+    let f = formatter();
     let result = f
         .format(URI, SHFMT_FIXTURE, Some(&opts(false, 2)), &default_config())
         .unwrap();
@@ -239,7 +239,7 @@ fn fixture_default_formats_with_tabs() {
 
 #[test]
 fn fixture_spaces_3_indents_with_3_spaces() {
-    let mut f = formatter();
+    let f = formatter();
     let result = f
         .format(URI, SHFMT_FIXTURE, Some(&opts(true, 3)), &default_config())
         .unwrap();
@@ -250,7 +250,7 @@ fn fixture_spaces_3_indents_with_3_spaces() {
 
 #[test]
 fn fixture_binary_next_line_breaks_operators() {
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         binary_next_line: true,
         ignore_editorconfig: true,
@@ -272,7 +272,7 @@ fn fixture_binary_next_line_breaks_operators() {
 
 #[test]
 fn fixture_case_indent_indents_case_arms() {
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         case_indent: true,
         ignore_editorconfig: true,
@@ -291,7 +291,7 @@ fn fixture_case_indent_indents_case_arms() {
 
 #[test]
 fn fixture_func_next_line_moves_brace() {
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         func_next_line: true,
         ignore_editorconfig: true,
@@ -311,7 +311,7 @@ fn fixture_func_next_line_moves_brace() {
 
 #[test]
 fn fixture_space_redirects_adds_spaces() {
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         space_redirects: true,
         ignore_editorconfig: true,
@@ -330,7 +330,7 @@ fn fixture_space_redirects_adds_spaces() {
 
 #[test]
 fn fixture_keep_padding_preserves_alignment() {
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         keep_padding: true,
         ignore_editorconfig: true,
@@ -350,7 +350,7 @@ fn fixture_keep_padding_preserves_alignment() {
 
 #[test]
 fn fixture_simplify_code_simplifies_test() {
-    let mut f = formatter();
+    let f = formatter();
     let config = ShfmtConfig {
         simplify_code: true,
         ignore_editorconfig: true,
