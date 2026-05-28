@@ -3,6 +3,16 @@ use std::process::Command;
 
 const GET_OPTIONS_SH: &str = include_str!("../../scripts/get-options.sh");
 
+fn command_text(output: std::io::Result<std::process::Output>) -> Option<String> {
+    let out = output.ok().filter(|o| o.status.success())?;
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    if text.trim().is_empty() {
+        None
+    } else {
+        Some(text)
+    }
+}
+
 #[must_use]
 pub fn get_command_options(cmd: &str, word: &str) -> Vec<String> {
     match Command::new("bash")
@@ -22,34 +32,14 @@ pub fn get_shell_documentation(word: &str) -> Result<Option<String>> {
     if word.chars().any(|c| c == ' ' || c == '\n' || c == '\t') {
         return Err(anyhow::anyhow!("Invalid word: {word:?}"));
     }
-    let output = Command::new("man").args(["-P", "cat", word]).output();
-
-    match output {
-        Ok(out) if out.status.success() => {
-            let text = String::from_utf8_lossy(&out.stdout).into_owned();
-            if text.trim().is_empty() {
-                Ok(None)
-            } else {
-                Ok(Some(text))
-            }
-        }
-        _ => {
-            let output = Command::new("bash")
-                .args(["-c", "help \"$1\"", "--", word])
-                .output();
-            match output {
-                Ok(out) if out.status.success() => {
-                    let text = String::from_utf8_lossy(&out.stdout).into_owned();
-                    if text.trim().is_empty() {
-                        Ok(None)
-                    } else {
-                        Ok(Some(text))
-                    }
-                }
-                _ => Ok(None),
-            }
-        }
+    if let Some(text) = command_text(Command::new("man").args(["-P", "cat", word]).output()) {
+        return Ok(Some(text));
     }
+    Ok(command_text(
+        Command::new("bash")
+            .args(["-c", "help \"$1\"", "--", word])
+            .output(),
+    ))
 }
 
 #[cfg(test)]

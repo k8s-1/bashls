@@ -1,4 +1,9 @@
-use lsp_types::{Position, Range};
+use lsp_types::{Position, Range, Uri};
+
+#[must_use]
+pub fn parse_uri(s: &str) -> Uri {
+    s.parse().unwrap_or_else(|_| "file:///".parse().unwrap())
+}
 
 #[must_use]
 pub const fn is_position_in_range(pos: Position, range: Range) -> bool {

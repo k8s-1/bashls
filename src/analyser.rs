@@ -6,6 +6,7 @@ use crate::util::declarations::{
     get_local_declarations,
 };
 use crate::util::fs::{get_file_paths, path_to_uri, uri_to_path};
+use crate::util::lsp::parse_uri;
 use crate::util::shebang::analyze_file;
 use crate::util::sourcing::{SourceCommand, get_source_commands};
 use crate::util::tree_sitter::{
@@ -186,9 +187,7 @@ impl Analyser {
                     && let Some(ref sourced) = sc.uri
                 {
                     return vec![Location {
-                        uri: sourced
-                            .parse()
-                            .unwrap_or_else(|_| "file:///".parse().unwrap()),
+                        uri: parse_uri(sourced),
                         range: Range {
                             start: Position::new(0, 0),
                             end: Position::new(0, 0),
@@ -246,7 +245,7 @@ impl Analyser {
         let Some(doc) = self.docs.get(uri) else {
             return vec![];
         };
-        let url: Uri = uri.parse().unwrap_or_else(|_| "file:///".parse().unwrap());
+        let url: Uri = parse_uri(uri);
         get_all_declarations_in_tree(&doc.tree, &url, doc.source.as_bytes())
     }
 
@@ -255,7 +254,7 @@ impl Analyser {
         let Some(doc) = self.docs.get(uri) else {
             return vec![];
         };
-        let url: Uri = uri.parse().unwrap_or_else(|_| "file:///".parse().unwrap());
+        let url: Uri = parse_uri(uri);
         let source = doc.source.as_bytes();
         let mut locations = Vec::new();
         let mut seen_ranges: HashSet<Range> = HashSet::new();
@@ -288,8 +287,8 @@ impl Analyser {
 
     #[must_use]
     pub fn find_references(&self, word: &str) -> Vec<Location> {
-        let uris: Vec<String> = self.docs.keys().cloned().collect();
-        uris.iter()
+        self.docs
+            .keys()
             .flat_map(|uri| self.find_occurrences(uri, word))
             .collect()
     }
@@ -509,9 +508,7 @@ impl Analyser {
             }
 
             if let Some(decl_uri_str) = found_uri {
-                let decl_uri: Uri = decl_uri_str
-                    .parse()
-                    .unwrap_or_else(|_| "file:///".parse().unwrap());
+                let decl_uri: Uri = parse_uri(&decl_uri_str);
                 return (
                     decl_range.map(|r| Location {
                         uri: decl_uri,
@@ -522,7 +519,7 @@ impl Analyser {
             }
         }
 
-        let uri_parsed: Uri = uri.parse().unwrap_or_else(|_| "file:///".parse().unwrap());
+        let uri_parsed: Uri = parse_uri(uri);
         (
             decl_range.map(|r| Location {
                 uri: uri_parsed.clone(),
@@ -621,7 +618,12 @@ impl Analyser {
         ordered
     }
 
-    fn collect_sourced_uris(&self, uri: &str, ordered: &mut Vec<String>, seen: &mut HashSet<String>) {
+    fn collect_sourced_uris(
+        &self,
+        uri: &str,
+        ordered: &mut Vec<String>,
+        seen: &mut HashSet<String>,
+    ) {
         let Some(doc) = self.docs.get(uri) else {
             return;
         };
@@ -662,7 +664,7 @@ impl Analyser {
             let Some(doc) = self.docs.get(uri.as_str()) else {
                 continue;
             };
-            let url: Uri = uri.parse().unwrap_or_else(|_| "file:///".parse().unwrap());
+            let url: Uri = parse_uri(uri);
             let source_bytes = doc.source.as_bytes();
 
             if from_uri.is_some_and(|f| f == uri.as_str())
