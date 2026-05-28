@@ -615,18 +615,20 @@ impl Analyser {
     }
 
     fn find_all_sourced_uris(&self, uri: &str) -> Vec<String> {
-        let mut result = HashSet::new();
-        self.collect_sourced_uris(uri, &mut result);
-        result.into_iter().collect()
+        let mut ordered = Vec::new();
+        let mut seen = HashSet::new();
+        self.collect_sourced_uris(uri, &mut ordered, &mut seen);
+        ordered
     }
 
-    fn collect_sourced_uris(&self, uri: &str, result: &mut HashSet<String>) {
+    fn collect_sourced_uris(&self, uri: &str, ordered: &mut Vec<String>, seen: &mut HashSet<String>) {
         let Some(doc) = self.docs.get(uri) else {
             return;
         };
         for sourced_uri in doc.source_commands.iter().filter_map(|sc| sc.uri.as_ref()) {
-            if result.insert(sourced_uri.clone()) {
-                self.collect_sourced_uris(sourced_uri, result);
+            if seen.insert(sourced_uri.clone()) {
+                ordered.push(sourced_uri.clone());
+                self.collect_sourced_uris(sourced_uri, ordered, seen);
             }
         }
     }
