@@ -33,11 +33,10 @@ fn parse_shebang(content: &str) -> Option<String> {
     let line = content.lines().next()?;
     let rest = line.strip_prefix("#!")?;
     let rest = rest.trim();
-    let re = regex_shebang(rest)?;
-    Some(re)
+    shell_from_shebang(rest)
 }
 
-fn regex_shebang(shebang: &str) -> Option<String> {
+fn shell_from_shebang(shebang: &str) -> Option<String> {
     let mut parts = shebang.split_whitespace();
     let path_part = parts.next()?;
     let base = path_part.split('/').next_back()?;

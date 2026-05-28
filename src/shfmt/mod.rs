@@ -38,7 +38,7 @@ impl Formatter {
     }
 
     pub fn format(
-        &mut self,
+        &self,
         uri: &str,
         content: &str,
         format_options: Option<&FormattingOptions>,
@@ -48,29 +48,25 @@ impl Formatter {
             return Ok(vec![]);
         }
         let args = build_args(uri, format_options, shfmt_config);
-        match self.run_shfmt(content, &args) {
-            Ok(formatted) => {
-                let end_line = u32::try_from(content.lines().count()).unwrap_or(0);
-                let end_col = content
-                    .lines()
-                    .last()
-                    .map_or(0, |l| u32::try_from(l.len()).unwrap_or(0));
-                Ok(vec![TextEdit {
-                    range: Range {
-                        start: Position {
-                            line: 0,
-                            character: 0,
-                        },
-                        end: Position {
-                            line: end_line,
-                            character: end_col,
-                        },
-                    },
-                    new_text: formatted,
-                }])
-            }
-            Err(e) => Err(e),
-        }
+        let formatted = self.run_shfmt(content, &args)?;
+        let end_line = u32::try_from(content.lines().count()).unwrap_or(0);
+        let end_col = content
+            .lines()
+            .last()
+            .map_or(0, |l| u32::try_from(l.len()).unwrap_or(0));
+        Ok(vec![TextEdit {
+            range: Range {
+                start: Position {
+                    line: 0,
+                    character: 0,
+                },
+                end: Position {
+                    line: end_line,
+                    character: end_col,
+                },
+            },
+            new_text: formatted,
+        }])
     }
 
     fn run_shfmt(&self, content: &str, args: &[String]) -> Result<String> {

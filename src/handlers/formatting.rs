@@ -6,7 +6,7 @@ pub fn handle_formatting(
     uri: &str,
     options: &FormattingOptions,
 ) -> Vec<TextEdit> {
-    let Some(ref mut formatter) = server.formatter else {
+    let Some(ref formatter) = server.formatter else {
         return vec![];
     };
     let Some(doc) = server.documents.get(uri) else {
