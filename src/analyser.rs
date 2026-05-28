@@ -53,6 +53,10 @@ impl Analyser {
         self.include_all_workspace_symbols = v;
     }
 
+    pub fn remove(&mut self, uri: &str) {
+        self.docs.remove(uri);
+    }
+
     pub fn analyze(&mut self, uri: &str, source: &str) -> Vec<Diagnostic> {
         let mut diagnostics = Vec::new();
         let url: Uri = match uri.parse() {

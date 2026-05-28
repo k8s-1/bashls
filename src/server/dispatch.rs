@@ -294,6 +294,7 @@ pub(super) fn handle_notification(
             let uri = params.text_document.uri.as_str().to_string();
             server.documents.remove(&uri);
             server.code_actions.remove(&uri);
+            server.analyser.remove(&uri);
             let params = PublishDiagnosticsParams {
                 uri: params.text_document.uri,
                 version: None,
