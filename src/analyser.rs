@@ -820,4 +820,12 @@ mod tests {
         let diags = a.analyze(URI, "echo hello\n");
         assert!(diags.is_empty());
     }
+
+    #[test]
+    fn remove_clears_document() {
+        let mut a = make_analyser("echo hello\n");
+        assert!(a.word_at_point(URI, 0, 0).is_some());
+        a.remove(URI);
+        assert!(a.word_at_point(URI, 0, 0).is_none());
+    }
 }
