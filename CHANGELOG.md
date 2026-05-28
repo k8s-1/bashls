@@ -1,3 +1,40 @@
+## [0.2.5] - 2026-05-28
+
+### 🐛 Bug Fixes
+
+- Evict analyser document on DidCloseTextDocument
+
+### 🚜 Refactor
+
+- Readability improvements across analyser and utils
+- Misc readability improvements
+
+### 📚 Documentation
+
+- Update benchmark numbers with fresh measurements
+- Shellcheck & shfmt are gracefully disabled if not found, no need to set path to empty
+
+### ⚡ Performance
+
+- Use HashSet for seen_ranges deduplication in find_occurrences
+- Remove redundant sourced_uris field and filter completions eagerly
+
+### 🧪 Testing
+
+- Add test for Analyser::remove
+
+### ⚙️ Miscellaneous Tasks
+
+- Revert demo.gif 2x slowdown
+- Remove dead logLevel config option
+- Refactor lsp_bench nested for
+- Deterministic source URI traversal order in find_all_sourced_uris
+- Remove speculative comment from get_text_edits
+- Remove unnecessary mut from formatter test bindings
+
+### ◀️ Revert
+
+- Restore original completion retain pattern for readability
 ## [0.2.4] - 2026-05-27
 
 ### 🐛 Bug Fixes
@@ -25,6 +62,7 @@
 - Update file(s): Cargo.lock
 - Precompute lowercase query in fuzzy search
 - Deduplicate point computation in word_at_point
+- Bump version to 0.2.4
 
 ### ◀️ Revert
 
