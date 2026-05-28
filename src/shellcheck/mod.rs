@@ -237,7 +237,6 @@ fn make_code_action(
 fn get_text_edits(replacements: &[ShellCheckReplacement]) -> Option<Vec<TextEdit>> {
     match replacements.len() {
         1 => Some(vec![replacement_to_text_edit(&replacements[0])]),
-        // Reversed so edits are applied last-to-first, preserving byte offsets
         2 => Some(vec![
             replacement_to_text_edit(&replacements[1]),
             replacement_to_text_edit(&replacements[0]),
