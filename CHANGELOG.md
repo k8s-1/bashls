@@ -1,3 +1,12 @@
+## [0.2.6] - 2026-05-29
+
+### 📚 Documentation
+
+- Improve README intro and alt text for SEO
+
+### ⚙️ Miscellaneous Tasks
+
+- Update dependencies
 ## [0.2.5] - 2026-05-28
 
 ### 🐛 Bug Fixes
@@ -31,6 +40,7 @@
 - Deterministic source URI traversal order in find_all_sourced_uris
 - Remove speculative comment from get_text_edits
 - Remove unnecessary mut from formatter test bindings
+- Bump version to 0.2.5
 
 ### ◀️ Revert
 
