@@ -1,12 +1,14 @@
-## [0.2.6] - 2026-05-29
+## [0.2.7] - 2026-05-29
 
 ### 📚 Documentation
 
+- Improve README intro and alt text for SEO
 - Improve README intro and alt text for SEO
 
 ### ⚙️ Miscellaneous Tasks
 
 - Update dependencies
+- Bump version to 0.2.6
 ## [0.2.5] - 2026-05-28
 
 ### 🐛 Bug Fixes

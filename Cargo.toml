@@ -1,6 +1,6 @@
 [package]
 name = "bashls"
-version = "0.2.6"
+version = "0.2.7"
 edition = "2024"
 description = "A Rust implementation of bash-language-server"
 license = "MIT"
