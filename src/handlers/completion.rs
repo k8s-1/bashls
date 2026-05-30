@@ -20,11 +20,8 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
         .analyser
         .word_at_point(uri, pos.line, pos.character.saturating_sub(1));
 
-    if let Some(ref w) = word {
-        if w.starts_with('#') {
-            return vec![];
-        }
-        if w == "{" {
+    if let Some(w) = word.as_deref() {
+        if w.starts_with('#') || w == "{" {
             return vec![];
         }
         if w.starts_with('-') {

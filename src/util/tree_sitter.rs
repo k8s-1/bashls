@@ -26,16 +26,6 @@ pub const fn position_to_point(p: Position) -> Point {
 }
 
 #[must_use]
-pub fn is_definition(node: Node<'_>) -> bool {
-    matches!(node.kind(), "variable_assignment" | "function_definition")
-}
-
-#[must_use]
-pub fn is_reference(node: Node<'_>) -> bool {
-    matches!(node.kind(), "variable_name" | "command_name")
-}
-
-#[must_use]
 pub fn is_variable_in_read_command(node: Node<'_>, source: &[u8]) -> bool {
     if node.kind() != "word" {
         return false;

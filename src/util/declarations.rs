@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use tree_sitter::{Node, Tree};
 
 use crate::util::tree_sitter::{
-    collect_typed_nodes, find_parent, for_each, is_definition, is_variable_in_read_command,
+    collect_typed_nodes, find_parent, for_each, is_variable_in_read_command,
     node_range, nodes_same, position_to_point,
 };
 
@@ -165,7 +165,7 @@ pub fn get_declaration_symbol(
     uri: &Uri,
     source: &[u8],
 ) -> Option<SymbolInformation> {
-    if is_definition(node) {
+    if matches!(node.kind(), "variable_assignment" | "function_definition") {
         node_to_symbol_information(node, uri, source)
     } else if node.kind() == "command" {
         // Handle `: "${VAR:="default"}"` pattern

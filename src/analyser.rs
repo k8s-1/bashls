@@ -10,7 +10,7 @@ use crate::util::lsp::parse_uri;
 use crate::util::shebang::analyze_file;
 use crate::util::sourcing::{SourceCommand, get_source_commands};
 use crate::util::tree_sitter::{
-    find_parent, for_each, is_definition, is_reference, is_variable_in_read_command, node_range,
+    find_parent, for_each, is_variable_in_read_command, node_range,
     position_to_point,
 };
 use lsp_types::{
@@ -260,12 +260,10 @@ impl Analyser {
         let mut seen_ranges: HashSet<Range> = HashSet::new();
 
         for_each(doc.tree.root_node(), &mut |n| {
-            let named_node = if is_reference(n) {
-                n.named_child(0).or(Some(n))
-            } else if is_definition(n) {
-                n.named_child(0)
-            } else {
-                None
+            let named_node = match n.kind() {
+                "variable_name" | "command_name" => n.named_child(0).or(Some(n)),
+                "variable_assignment" | "function_definition" => n.named_child(0),
+                _ => None,
             };
             if let Some(named) = named_node {
                 let text = named.utf8_text(source).unwrap_or("");
