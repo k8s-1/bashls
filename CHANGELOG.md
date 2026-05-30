@@ -1,3 +1,8 @@
+## [unreleased]
+
+### 🚜 Refactor
+
+- Inline is_definition/is_reference helpers and simplify completion guards
 ## [0.2.7] - 2026-05-29
 
 ### 📚 Documentation
@@ -9,6 +14,7 @@
 
 - Update dependencies
 - Bump version to 0.2.6
+- Bump version to 0.2.7
 ## [0.2.5] - 2026-05-28
 
 ### 🐛 Bug Fixes

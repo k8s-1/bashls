@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use tree_sitter::{Node, Tree};
 
 use crate::util::tree_sitter::{
-    collect_typed_nodes, find_parent, for_each, is_variable_in_read_command,
-    node_range, nodes_same, position_to_point,
+    collect_typed_nodes, find_parent, for_each, is_variable_in_read_command, node_range,
+    nodes_same, position_to_point,
 };
 
 pub type GlobalDeclarations = HashMap<String, SymbolInformation>;

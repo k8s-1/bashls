@@ -10,8 +10,7 @@ use crate::util::lsp::parse_uri;
 use crate::util::shebang::analyze_file;
 use crate::util::sourcing::{SourceCommand, get_source_commands};
 use crate::util::tree_sitter::{
-    find_parent, for_each, is_variable_in_read_command, node_range,
-    position_to_point,
+    find_parent, for_each, is_variable_in_read_command, node_range, position_to_point,
 };
 use lsp_types::{
     Diagnostic, DiagnosticSeverity, Location, Position, Range, SymbolInformation, SymbolKind, Uri,
