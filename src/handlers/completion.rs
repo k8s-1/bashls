@@ -60,23 +60,20 @@ pub fn handle_completion(server: &mut Server, uri: &str, pos: Position) -> Vec<C
         .as_deref()
         .is_some_and(|w| PARAMETER_EXPANSION_PREFIXES.contains(&w));
 
-    let symbol_completions = if word.is_none() {
-        vec![]
-    } else {
-        let syms = if should_complete_vars {
+    let symbol_completions = if let Some(ref w) = word {
+        let symbols = if should_complete_vars {
             server.analyser.get_all_variables(uri, pos)
         } else {
-            server.analyser.find_declarations_matching_word(
-                uri,
-                word.as_deref().unwrap_or(""),
-                Some(pos),
-                false,
-            )
+            server
+                .analyser
+                .find_declarations_matching_word(uri, w, Some(pos), false)
         };
-        deduplicate_symbols(syms, uri)
+        deduplicate_symbols(symbols, uri)
             .into_iter()
             .map(symbol_to_completion)
             .collect::<Vec<_>>()
+    } else {
+        vec![]
     };
 
     if should_complete_vars {
