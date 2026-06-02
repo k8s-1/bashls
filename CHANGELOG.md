@@ -3,6 +3,13 @@
 ### 🚜 Refactor
 
 - Inline is_definition/is_reference helpers and simplify completion guards
+- Remove unreachable unwrap_or in completion symbol lookup
+- Split find_occurrences_within_tree into variable and function helpers
+- Replace comment_re closure with nested fn comment_text in comments_above
+
+### ⚙️ Miscellaneous Tasks
+
+- Format and changelog
 ## [0.2.7] - 2026-05-29
 
 ### 📚 Documentation

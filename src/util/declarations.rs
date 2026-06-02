@@ -371,7 +371,12 @@ fn find_variable_occurrences<'a>(
     start: Option<Position>,
 ) -> Vec<Range> {
     let mut nodes = Vec::new();
-    collect_typed_nodes(base_node, &["variable_name", "word"], effective_start, &mut nodes);
+    collect_typed_nodes(
+        base_node,
+        &["variable_name", "word"],
+        effective_start,
+        &mut nodes,
+    );
 
     let mut ignored_ranges: Vec<Range> = Vec::new();
     let mut result: Vec<Range> = Vec::new();

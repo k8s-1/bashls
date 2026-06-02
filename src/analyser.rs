@@ -326,18 +326,18 @@ impl Analyser {
     #[must_use]
     pub fn comments_above(&self, uri: &str, line: u32) -> Option<String> {
         let doc = self.docs.get(uri)?;
+        fn comment_text(l: &str) -> Option<String> {
+            let rest = l.trim_start().strip_prefix('#')?.trim_start();
+            Some(rest.trim_end().to_string())
+        }
+
         let lines: Vec<&str> = doc.source.lines().collect();
         let mut block = Vec::new();
-        let comment_re = |l: &str| -> Option<String> {
-            let trimmed = l.trim_start();
-            let rest = trimmed.strip_prefix('#')?.trim_start();
-            Some(rest.trim_end().to_string())
-        };
 
         let mut idx = line.saturating_sub(1) as usize;
         loop {
             let l = lines.get(idx)?;
-            match comment_re(l) {
+            match comment_text(l) {
                 Some(c) => {
                     block.push(c);
                     if idx == 0 {
