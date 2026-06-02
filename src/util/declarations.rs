@@ -218,8 +218,6 @@ fn is_defined_variable_in_expression(
         && (var_end_col < position.character as usize || var_end_row < position.line as usize)
 }
 
-/// Port of TypeScript `findDeclarationUsingGlobalSemantics`.
-///
 /// Searches `base_node` (a program root or subshell) for the first declaration
 /// of `word`. `boundary` is updated when a local declaration is found (to stop
 /// searching past it). Returns `(declaration_range, continue_searching)`.
