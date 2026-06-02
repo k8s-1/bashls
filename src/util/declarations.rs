@@ -356,120 +356,146 @@ pub fn find_occurrences_within_tree(
 
     let effective_start = start.map_or_else(|| base_node.start_position(), position_to_point);
 
-    let kinds: &[&str] = if kind == SymbolKind::VARIABLE {
-        &["variable_name", "word"]
+    if kind == SymbolKind::VARIABLE {
+        find_variable_occurrences(base_node, source, word, effective_start, start)
     } else {
-        &["function_definition", "command_name"]
-    };
+        find_function_occurrences(base_node, source, word, effective_start)
+    }
+}
 
+fn find_variable_occurrences<'a>(
+    base_node: Node<'a>,
+    source: &[u8],
+    word: &str,
+    effective_start: tree_sitter::Point,
+    start: Option<Position>,
+) -> Vec<Range> {
     let mut nodes = Vec::new();
-    collect_typed_nodes(base_node, kinds, effective_start, &mut nodes);
+    collect_typed_nodes(base_node, &["variable_name", "word"], effective_start, &mut nodes);
 
     let mut ignored_ranges: Vec<Range> = Vec::new();
     let mut result: Vec<Range> = Vec::new();
 
-    if kind == SymbolKind::VARIABLE {
-        for n in nodes {
-            let Ok(text) = n.utf8_text(source) else {
-                continue;
-            };
-            if text != word {
-                continue;
-            }
-            if n.kind() == "word" && !is_variable_in_read_command(n, source) {
-                continue;
-            }
+    for n in nodes {
+        let Ok(text) = n.utf8_text(source) else {
+            continue;
+        };
+        if text != word {
+            continue;
+        }
+        if n.kind() == "word" && !is_variable_in_read_command(n, source) {
+            continue;
+        }
 
-            let definition = find_parent(n, |p| p.kind() == "variable_assignment");
-            let defined_var = definition
-                .and_then(|d| d.named_child(0))
-                .filter(|v| v.kind() == "variable_name");
-            let defined_var_matches = defined_var
-                .and_then(|v| v.utf8_text(source).ok())
-                .is_some_and(|t| t == word);
+        let definition = find_parent(n, |p| p.kind() == "variable_assignment");
+        let defined_var = definition
+            .and_then(|d| d.named_child(0))
+            .filter(|v| v.kind() == "variable_name");
+        let defined_var_matches = defined_var
+            .and_then(|v| v.utf8_text(source).ok())
+            .is_some_and(|t| t == word);
 
-            if defined_var_matches {
-                let is_self = defined_var.is_some_and(|dv| dv.start_byte() == n.start_byte());
-                if !is_self {
-                    let def_row = definition.map_or(0, |d| d.start_position().row);
-                    if start.is_some_and(|s| def_row == s.line as usize) {
-                        continue;
-                    }
-                    result.push(node_range(n));
+        if defined_var_matches {
+            let is_self = defined_var.is_some_and(|dv| dv.start_byte() == n.start_byte());
+            if !is_self {
+                let def_row = definition.map_or(0, |d| d.start_position().row);
+                if start.is_some_and(|s| def_row == s.line as usize) {
                     continue;
                 }
-            }
-
-            let parent_scope = find_parent(n, |p| {
-                p.kind() == "function_definition" || p.kind() == "subshell"
-            });
-            let in_base = parent_scope.is_none_or(|ps| nodes_same(ps, base_node));
-            if in_base {
                 result.push(node_range(n));
                 continue;
-            }
-
-            let include = !in_ignored_range(&ignored_ranges, n);
-            let declaration_command = find_parent(n, |p| p.kind() == "declaration_command");
-            let kw = declaration_command
-                .and_then(|dc| dc.child(0))
-                .and_then(|c| c.utf8_text(source).ok())
-                .unwrap_or("");
-            let is_local_kw = matches!(kw, "local" | "declare" | "typeset");
-            let parent_is_subshell = parent_scope.is_some_and(|ps| ps.kind() == "subshell");
-
-            let is_local = ((defined_var_matches
-                || (definition.is_none() && declaration_command.is_some()))
-                && (parent_is_subshell || is_local_kw))
-                || (parent_is_subshell && n.kind() == "word");
-
-            if is_local {
-                if include && let Some(ps) = parent_scope {
-                    ignored_ranges.push(node_range(ps));
-                }
-                continue;
-            }
-
-            if include {
-                result.push(node_range(n));
             }
         }
-    } else {
-        for n in nodes {
-            let text = if n.kind() == "function_definition" {
-                n.named_child(0)
-                    .and_then(|c| c.utf8_text(source).ok())
-                    .unwrap_or("")
-                    .to_string()
+
+        let parent_scope = find_parent(n, |p| {
+            p.kind() == "function_definition" || p.kind() == "subshell"
+        });
+        let in_base = parent_scope.is_none_or(|ps| nodes_same(ps, base_node));
+        if in_base {
+            result.push(node_range(n));
+            continue;
+        }
+
+        let include = !in_ignored_range(&ignored_ranges, n);
+        let declaration_command = find_parent(n, |p| p.kind() == "declaration_command");
+        let kw = declaration_command
+            .and_then(|dc| dc.child(0))
+            .and_then(|c| c.utf8_text(source).ok())
+            .unwrap_or("");
+        let is_local_kw = matches!(kw, "local" | "declare" | "typeset");
+        let parent_is_subshell = parent_scope.is_some_and(|ps| ps.kind() == "subshell");
+
+        let is_local = ((defined_var_matches
+            || (definition.is_none() && declaration_command.is_some()))
+            && (parent_is_subshell || is_local_kw))
+            || (parent_is_subshell && n.kind() == "word");
+
+        if is_local {
+            if include && let Some(ps) = parent_scope {
+                ignored_ranges.push(node_range(ps));
+            }
+            continue;
+        }
+
+        if include {
+            result.push(node_range(n));
+        }
+    }
+
+    result
+}
+
+fn find_function_occurrences<'a>(
+    base_node: Node<'a>,
+    source: &[u8],
+    word: &str,
+    effective_start: tree_sitter::Point,
+) -> Vec<Range> {
+    let mut nodes = Vec::new();
+    collect_typed_nodes(
+        base_node,
+        &["function_definition", "command_name"],
+        effective_start,
+        &mut nodes,
+    );
+
+    let mut ignored_ranges: Vec<Range> = Vec::new();
+    let mut result: Vec<Range> = Vec::new();
+
+    for n in nodes {
+        let text = if n.kind() == "function_definition" {
+            n.named_child(0)
+                .and_then(|c| c.utf8_text(source).ok())
+                .unwrap_or("")
+                .to_string()
+        } else {
+            n.utf8_text(source).unwrap_or("").to_string()
+        };
+        if text != word {
+            continue;
+        }
+
+        let parent_subshell = find_parent(n, |p| p.kind() == "subshell");
+        let in_base = parent_subshell.is_none_or(|ps| nodes_same(ps, base_node));
+        if in_base {
+            let r = if n.kind() == "function_definition" {
+                n.named_child(0).map_or_else(|| node_range(n), node_range)
             } else {
-                n.utf8_text(source).unwrap_or("").to_string()
+                node_range(n)
             };
-            if text != word {
-                continue;
-            }
+            result.push(r);
+            continue;
+        }
 
-            let parent_subshell = find_parent(n, |p| p.kind() == "subshell");
-            let in_base = parent_subshell.is_none_or(|ps| nodes_same(ps, base_node));
-            if in_base {
-                let r = if n.kind() == "function_definition" {
-                    n.named_child(0).map_or_else(|| node_range(n), node_range)
-                } else {
-                    node_range(n)
-                };
-                result.push(r);
-                continue;
+        let include = !in_ignored_range(&ignored_ranges, n);
+        if n.kind() == "function_definition" {
+            if include && let Some(ps) = parent_subshell {
+                ignored_ranges.push(node_range(ps));
             }
-
-            let include = !in_ignored_range(&ignored_ranges, n);
-            if n.kind() == "function_definition" {
-                if include && let Some(ps) = parent_subshell {
-                    ignored_ranges.push(node_range(ps));
-                }
-                continue;
-            }
-            if include {
-                result.push(node_range(n));
-            }
+            continue;
+        }
+        if include {
+            result.push(node_range(n));
         }
     }
 
