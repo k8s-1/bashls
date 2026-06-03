@@ -182,3 +182,27 @@ fn path_with_spaces_produces_percent_encoded_uri() {
     assert!(!uri.contains(' '), "URI must not contain a raw space");
     fs::remove_dir_all(&dir).ok();
 }
+
+#[test]
+fn file_not_in_file_dir_resolves_via_workspace_root() {
+    let workspace = std::env::temp_dir().join("bashls_test_sourcing_ws");
+    let file_dir = std::env::temp_dir().join("bashls_test_sourcing_ws_filedir");
+    fs::create_dir_all(&workspace).unwrap();
+    fs::create_dir_all(&file_dir).unwrap();
+    fs::write(workspace.join("shared.sh"), "").unwrap();
+
+    let main = file_dir.join("main.sh");
+    let content = "source shared.sh\n";
+    fs::write(&main, content).unwrap();
+    let file_uri = format!("file://{}", main.to_string_lossy());
+    let workspace_uri = format!("file://{}", workspace.to_string_lossy());
+    let tree = parse(content);
+    let cmds = get_source_commands(&tree, &file_uri, Some(&workspace_uri), content.as_bytes());
+    assert_eq!(cmds.len(), 1);
+    assert!(
+        cmds[0].uri.is_some(),
+        "should resolve via workspace root when absent from file dir"
+    );
+    fs::remove_dir_all(&workspace).ok();
+    fs::remove_dir_all(&file_dir).ok();
+}

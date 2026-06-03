@@ -184,8 +184,9 @@ fn resolve_sourced_uri(root_paths: &[String], sourced_path: &str) -> Option<Stri
         let root = uri_to_path(root).to_string_lossy().into_owned();
         let candidate = format!("{root}/{sourced_path}");
         let candidate = Path::new(&candidate);
-        if candidate.exists() {
-            let canonical = candidate.canonicalize().ok()?;
+        if candidate.exists()
+            && let Ok(canonical) = candidate.canonicalize()
+        {
             return Some(path_to_uri(&canonical));
         }
     }
