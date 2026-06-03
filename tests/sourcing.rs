@@ -1,4 +1,5 @@
 use bashls::parser::create_parser;
+use bashls::util::fs::path_to_uri;
 use bashls::util::sourcing::get_source_commands;
 use std::fs;
 
@@ -158,5 +159,26 @@ fn dot_command_is_treated_as_source() {
     let cmds = get_source_commands(&tree, &file_uri, None, content.as_bytes());
     assert_eq!(cmds.len(), 1);
     assert!(cmds[0].uri.is_some(), ". (dot) should be treated as source");
+    fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
+fn path_with_spaces_produces_percent_encoded_uri() {
+    let dir = std::env::temp_dir().join("bashls test sourcing spaces");
+    fs::create_dir_all(&dir).unwrap();
+    let lib = dir.join("lib.sh");
+    fs::write(&lib, "").unwrap();
+    let lib_str = lib.to_string_lossy();
+    let content = format!("source \"{lib_str}\"\n");
+    let tree = parse(&content);
+    let cmds = get_source_commands(&tree, "file:///test/main.sh", None, content.as_bytes());
+    assert_eq!(cmds.len(), 1);
+    let uri = cmds[0].uri.as_deref().expect("should resolve");
+    assert_eq!(
+        uri,
+        path_to_uri(&lib).as_str(),
+        "URI must be percent-encoded"
+    );
+    assert!(!uri.contains(' '), "URI must not contain a raw space");
     fs::remove_dir_all(&dir).ok();
 }

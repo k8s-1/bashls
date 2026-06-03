@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::shellcheck::directive::{Directive, parse_shellcheck_directive};
-use crate::util::fs::{untildify, uri_to_path, uri_to_path_opt};
+use crate::util::fs::{path_to_uri, untildify, uri_to_path, uri_to_path_opt};
 use crate::util::tree_sitter::{for_each, node_range, resolve_static_string};
 use lsp_types::Range;
 use tree_sitter::Tree;
@@ -173,8 +173,9 @@ fn resolve_sourced_uri(root_paths: &[String], sourced_path: &str) -> Option<Stri
     };
 
     if sourced_path.starts_with('/') {
-        if Path::new(&sourced_path).exists() {
-            return Some(format!("file://{sourced_path}"));
+        let p = Path::new(&sourced_path);
+        if p.exists() {
+            return Some(path_to_uri(p));
         }
         return None;
     }
@@ -185,7 +186,7 @@ fn resolve_sourced_uri(root_paths: &[String], sourced_path: &str) -> Option<Stri
         let candidate = Path::new(&candidate);
         if candidate.exists() {
             let canonical = candidate.canonicalize().ok()?;
-            return Some(format!("file://{}", canonical.to_string_lossy()));
+            return Some(path_to_uri(&canonical));
         }
     }
 
