@@ -10,8 +10,10 @@ pub fn uri_to_path_opt(uri: &str) -> Option<PathBuf> {
     let rest = uri.strip_prefix("file://")?;
     let path = if rest.starts_with('/') {
         rest
+    } else if rest.starts_with("localhost/") {
+        &rest["localhost".len()..]
     } else {
-        rest.strip_prefix("localhost")?
+        return None;
     };
     let decoded = percent_decode(path);
     Some(PathBuf::from(decoded))
@@ -160,5 +162,10 @@ mod tests {
             uri_to_path_opt("file://localhost/path/to/file.sh"),
             Some(PathBuf::from("/path/to/file.sh"))
         );
+    }
+
+    #[test]
+    fn malformed_localhost_uri_returns_none() {
+        assert!(uri_to_path_opt("file://localhostfoo.sh").is_none());
     }
 }
