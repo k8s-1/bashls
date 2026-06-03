@@ -26,10 +26,8 @@ pub(super) fn read_editorconfig(path: &str) -> Option<EditorconfigShfmt> {
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with('[') {
-            in_section = line.contains('*') || {
-                let section = line.trim_start_matches('[').trim_end_matches(']');
-                path.ends_with(section.trim_matches('*'))
-            };
+            let section = line.trim_start_matches('[').trim_end_matches(']');
+            in_section = section == "*" || path.ends_with(section.trim_start_matches('*'));
             continue;
         }
         if !in_section {
@@ -74,6 +72,85 @@ fn find_editorconfig(path: &str) -> Option<std::path::PathBuf> {
         dir = parent;
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn make_temp_dir(suffix: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("bashls_ec_{}_{}", suffix, std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn glob_section_matches_only_files_with_matching_extension() {
+        let dir = make_temp_dir("glob");
+        fs::write(dir.join(".editorconfig"), "[*.sh]\nshell_variant = posix\n").unwrap();
+        let sh = dir.join("foo.sh");
+        let bash = dir.join("foo.bash");
+        fs::write(&sh, "").unwrap();
+        fs::write(&bash, "").unwrap();
+
+        assert!(
+            read_editorconfig(&sh.to_string_lossy()).is_some(),
+            "[*.sh] should match foo.sh"
+        );
+        assert!(
+            read_editorconfig(&bash.to_string_lossy()).is_none(),
+            "[*.sh] should not match foo.bash"
+        );
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn star_section_matches_all_files() {
+        let dir = make_temp_dir("star");
+        fs::write(dir.join(".editorconfig"), "[*]\nshell_variant = bash\n").unwrap();
+        let sh = dir.join("foo.sh");
+        let bash = dir.join("foo.bash");
+        fs::write(&sh, "").unwrap();
+        fs::write(&bash, "").unwrap();
+
+        assert!(
+            read_editorconfig(&sh.to_string_lossy()).is_some(),
+            "[*] should match foo.sh"
+        );
+        assert!(
+            read_editorconfig(&bash.to_string_lossy()).is_some(),
+            "[*] should match foo.bash"
+        );
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn exact_filename_section_matches_only_that_file() {
+        let dir = make_temp_dir("exact");
+        fs::write(
+            dir.join(".editorconfig"),
+            "[foo.sh]\nshell_variant = posix\n",
+        )
+        .unwrap();
+        let sh = dir.join("foo.sh");
+        let other = dir.join("bar.sh");
+        fs::write(&sh, "").unwrap();
+        fs::write(&other, "").unwrap();
+
+        assert!(
+            read_editorconfig(&sh.to_string_lossy()).is_some(),
+            "[foo.sh] should match foo.sh"
+        );
+        assert!(
+            read_editorconfig(&other.to_string_lossy()).is_none(),
+            "[foo.sh] should not match bar.sh"
+        );
+
+        fs::remove_dir_all(&dir).ok();
+    }
 }
 
 pub(super) fn apply_editorconfig(mut config: ShfmtConfig, ec: EditorconfigShfmt) -> ShfmtConfig {
