@@ -114,8 +114,6 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | Flag | Description |
 |---|---|
 | `--log-level` | Log verbosity: `error` (default), `warn`, `info`, `debug`, `trace`. Pass via the editor's server command, e.g. `cmd = { 'bashls', '--log-level', 'warn' }`. |
-| `--version` / `-v` | Print the version and exit. |
-| `--help` / `-h` | Print usage and exit. |
 
 ## Limitations
 
