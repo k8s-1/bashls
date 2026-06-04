@@ -206,3 +206,11 @@ fn file_not_in_file_dir_resolves_via_workspace_root() {
     fs::remove_dir_all(&workspace).ok();
     fs::remove_dir_all(&file_dir).ok();
 }
+
+#[test]
+fn source_with_invalid_utf8_in_expansion_string_does_not_panic() {
+    let source: &[u8] = b"source \"$VAR\x80\"";
+    let mut parser = create_parser().unwrap();
+    let tree = parser.parse(source, None).unwrap();
+    let _ = get_source_commands(&tree, FILE_URI, None, source);
+}
