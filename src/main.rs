@@ -52,7 +52,7 @@ fn main() {
             println!("bashls {}", env!("CARGO_PKG_VERSION"));
         }
         Some("--help") | Some("-h") => {
-            println!("Usage: bashls [start] [--log-level error|warn|info|debug|trace]");
+            println!("Usage: bashls [start|--version|--help] [--log-level error|warn|info|debug|trace]");
         }
         _ => {
             eprintln!("Unknown command");
