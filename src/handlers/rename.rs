@@ -69,7 +69,7 @@ pub fn handle_rename(
         let mut ranges = server
             .analyser
             .find_occurrences_within(uri, &word, kind, start, scope);
-        if ranges.is_empty() {
+        if ranges.is_empty() && scope.is_none() {
             ranges = server
                 .analyser
                 .find_occurrences(uri, &word)
