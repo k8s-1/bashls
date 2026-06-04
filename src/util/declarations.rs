@@ -17,7 +17,7 @@ pub fn get_global_declarations(tree: &Tree, uri: &Uri, source: &[u8]) -> GlobalD
     for_each(tree.root_node(), &mut |node| {
         let follow = !GLOBAL_LEAF_NODE_TYPES.contains(&node.kind());
         if let Some(sym) = get_declaration_symbol(node, uri, source) {
-            result.insert(sym.name.clone(), sym);
+            result.entry(sym.name.clone()).or_insert(sym);
         }
         follow
     });
@@ -506,11 +506,13 @@ fn find_function_occurrences<'a>(
 }
 
 fn in_ignored_range(ignored: &[Range], n: Node<'_>) -> bool {
-    let start_row = n.start_position().row;
-    let end_row = n.end_position().row;
-    ignored
-        .iter()
-        .any(|r| start_row >= r.start.line as usize && end_row <= r.end.line as usize)
+    let ns = n.start_position();
+    let ne = n.end_position();
+    ignored.iter().any(|r| {
+        let rs = (r.start.line as usize, r.start.character as usize);
+        let re = (r.end.line as usize, r.end.character as usize);
+        (ns.row, ns.column) >= rs && (ne.row, ne.column) <= re
+    })
 }
 
 /// Port of TypeScript `findDeclarationUsingLocalSemantics`.
