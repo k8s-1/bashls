@@ -186,7 +186,7 @@ fn map_shellcheck_result(uri: &str, result: ShellCheckResult) -> LintingResult {
 
         let diagnostic = Diagnostic {
             range,
-            severity: Some(level_to_severity(comment.level.as_str())),
+            severity: Some(level_to_severity(comment.level)),
             code: Some(NumberOrString::String(format!("SC{}", comment.code))),
             code_description: Some(lsp_types::CodeDescription {
                 href: format!("https://www.shellcheck.net/wiki/SC{}", comment.code)

@@ -1,14 +1,16 @@
 use lsp_types::{DiagnosticSeverity, DiagnosticTag};
 
+use super::types::ShellCheckLevel;
+
 pub const SHELLCHECK_DIALECTS: &[&str] = &["sh", "bash", "dash", "ksh", "busybox"];
 
 #[must_use]
-pub fn level_to_severity(level: &str) -> DiagnosticSeverity {
+pub fn level_to_severity(level: ShellCheckLevel) -> DiagnosticSeverity {
     match level {
-        "warning" => DiagnosticSeverity::WARNING,
-        "info" => DiagnosticSeverity::INFORMATION,
-        "style" => DiagnosticSeverity::HINT,
-        _ => DiagnosticSeverity::ERROR,
+        ShellCheckLevel::Warning => DiagnosticSeverity::WARNING,
+        ShellCheckLevel::Info => DiagnosticSeverity::INFORMATION,
+        ShellCheckLevel::Style => DiagnosticSeverity::HINT,
+        ShellCheckLevel::Error => DiagnosticSeverity::ERROR,
     }
 }
 

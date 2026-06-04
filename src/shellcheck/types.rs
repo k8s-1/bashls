@@ -33,18 +33,6 @@ pub enum ShellCheckLevel {
     Style,
 }
 
-impl ShellCheckLevel {
-    #[must_use]
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            Self::Error => "error",
-            Self::Warning => "warning",
-            Self::Info => "info",
-            Self::Style => "style",
-        }
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct ShellCheckFix {
     pub replacements: Vec<ShellCheckReplacement>,
