@@ -59,7 +59,10 @@ pub fn untildify(path: &str) -> String {
 pub fn get_file_paths(workspace_root: &Path, glob_pattern: &str, max_items: usize) -> Vec<PathBuf> {
     let suffixes: Vec<String> = expand_extglob(glob_pattern)
         .into_iter()
-        .filter_map(|p| p.rfind('*').map(|i| p[i + 1..].to_string()))
+        .map(|p| {
+            p.rfind('*')
+                .map_or_else(|| p.clone(), |i| p[i + 1..].to_string())
+        })
         .collect();
 
     let mut paths = Vec::new();
