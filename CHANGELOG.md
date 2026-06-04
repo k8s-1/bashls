@@ -42,6 +42,7 @@
 - Remove redundant comment
 - Update log dependency
 - Rewrite let..else in sourcing.rs to ? for clippy error
+- Bump version to 0.2.8
 ## [0.2.7] - 2026-05-29
 
 ### 📚 Documentation
