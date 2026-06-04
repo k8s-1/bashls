@@ -121,10 +121,10 @@ impl Linter {
         }
         args.extend_from_slice(additional_args);
 
-        let user_args = additional_args.join(" ");
         if let Some(shell) = shell_name
-            && !user_args.contains("--shell")
-            && !user_args.contains("-s ")
+            && !additional_args
+                .iter()
+                .any(|a| a.starts_with("--shell") || a.starts_with("-s"))
         {
             args.insert(0, format!("--shell={shell}"));
         }
@@ -235,14 +235,12 @@ fn make_code_action(
 }
 
 fn get_text_edits(replacements: &[ShellCheckReplacement]) -> Option<Vec<TextEdit>> {
-    match replacements.len() {
-        1 => Some(vec![replacement_to_text_edit(&replacements[0])]),
-        2 => Some(vec![
-            replacement_to_text_edit(&replacements[1]),
-            replacement_to_text_edit(&replacements[0]),
-        ]),
-        _ => None,
+    if replacements.is_empty() {
+        return None;
     }
+    let mut sorted = replacements.to_vec();
+    sorted.sort_by(|a, b| b.line.cmp(&a.line).then_with(|| b.column.cmp(&a.column)));
+    Some(sorted.iter().map(replacement_to_text_edit).collect())
 }
 
 fn replacement_to_text_edit(r: &ShellCheckReplacement) -> TextEdit {

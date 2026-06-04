@@ -49,11 +49,18 @@ impl Formatter {
         }
         let args = build_args(uri, format_options, shfmt_config);
         let formatted = self.run_shfmt(content, &args)?;
-        let end_line = u32::try_from(content.lines().count()).unwrap_or(0);
-        let end_col = content
-            .lines()
-            .last()
-            .map_or(0, |l| u32::try_from(l.len()).unwrap_or(0));
+        let line_count = content.lines().count();
+        let (end_line, end_col) = if content.ends_with('\n') || line_count == 0 {
+            (u32::try_from(line_count).unwrap_or(0), 0)
+        } else {
+            (
+                u32::try_from(line_count - 1).unwrap_or(0),
+                content
+                    .lines()
+                    .last()
+                    .map_or(0, |l| u32::try_from(l.len()).unwrap_or(0)),
+            )
+        };
         Ok(vec![TextEdit {
             range: Range {
                 start: Position {

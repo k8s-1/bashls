@@ -27,7 +27,9 @@ pub fn handle_references(
         .analyser
         .find_references(&word)
         .into_iter()
-        .filter(|l| include_declaration || !is_position_in_range(pos, l.range))
+        .filter(|l| {
+            include_declaration || l.uri.as_str() != uri || !is_position_in_range(pos, l.range)
+        })
         .collect()
 }
 

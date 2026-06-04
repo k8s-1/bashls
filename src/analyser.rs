@@ -77,21 +77,19 @@ impl Analyser {
         let source_commands =
             get_source_commands(&tree, uri, self.workspace_folder.as_deref(), source_bytes);
 
-        if !self.include_all_workspace_symbols {
-            for sc in &source_commands {
-                if let Some(ref err) = sc.error {
-                    log::warn!("{} line {}: {}", uri, sc.range.start.line, err);
-                    if self.enable_source_error_diagnostics {
-                        diagnostics.push(Diagnostic {
-                            range: sc.range,
-                            severity: Some(DiagnosticSeverity::INFORMATION),
-                            source: Some("bash-language-server".to_string()),
-                            message: format!(
-                                "Source command could not be analyzed: {err}.\nConsider adding a ShellCheck directive above this line."
-                            ),
-                            ..Default::default()
-                        });
-                    }
+        for sc in &source_commands {
+            if let Some(ref err) = sc.error {
+                log::debug!("{} line {}: {}", uri, sc.range.start.line, err);
+                if self.enable_source_error_diagnostics && !self.include_all_workspace_symbols {
+                    diagnostics.push(Diagnostic {
+                        range: sc.range,
+                        severity: Some(DiagnosticSeverity::INFORMATION),
+                        source: Some("bash-language-server".to_string()),
+                        message: format!(
+                            "Source command could not be analyzed: {err}.\nConsider adding a ShellCheck directive above this line."
+                        ),
+                        ..Default::default()
+                    });
                 }
             }
         }
@@ -393,8 +391,8 @@ impl Analyser {
         word: &str,
         kind: SymbolKind,
     ) -> (Option<Location>, Option<Location>) {
+        self.ensure_all_transitive_analyzed(uri);
         let ordered = self.get_ordered_reachable_uris(uri);
-        self.ensure_reachable_files_analyzed(&ordered);
         self.do_find_original_declaration(uri, &ordered, position, word, kind)
     }
 
@@ -632,6 +630,17 @@ impl Analyser {
         }
     }
 
+    fn ensure_all_transitive_analyzed(&mut self, root_uri: &str) {
+        loop {
+            let before = self.docs.len();
+            let reachable = self.find_all_sourced_uris(root_uri);
+            self.ensure_reachable_files_analyzed(&reachable);
+            if self.docs.len() == before {
+                break;
+            }
+        }
+    }
+
     fn ensure_reachable_files_analyzed(&mut self, uris: &[String]) {
         let to_analyze: Vec<String> = uris
             .iter()
@@ -648,6 +657,10 @@ impl Analyser {
         from_uri: Option<&str>,
         position: Option<Position>,
     ) -> Vec<SymbolInformation> {
+        if let Some(uri) = from_uri {
+            self.ensure_all_transitive_analyzed(uri);
+        }
+
         let reachable = match from_uri {
             Some(uri) => self.get_reachable_uris(uri),
             None => self.docs.keys().cloned().collect(),
