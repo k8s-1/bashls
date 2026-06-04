@@ -1,4 +1,26 @@
-## [unreleased]
+## [0.2.8] - 2026-06-04
+
+### 🚀 Features
+
+- Add --log-level flag, default to error, restore internal logs to warn
+- Validate --log-level values and document flag in README
+
+### 🐛 Bug Fixes
+
+- Editorconfig glob sections matching all files instead of extension
+- Use path_to_uri for sourced file URIs to ensure percent-encoding
+- Don't use ? inside root_paths loop in resolve_sourced_uri
+- Reject malformed localhost URIs in uri_to_path_opt
+- Six correctness bugs across analyser, navigation, shellcheck, and shfmt
+- Two correctness bugs in declarations
+- Demote syntax-error log from warn to debug
+- Propagate shellcheck stdin write error instead of discarding it
+- Don't fall back to file-wide rename when a scope is known
+- Avoid panic in sourcing when string node contains invalid UTF-8
+- Match editorconfig sections with leading glob stars correctly
+- Glob patterns without wildcards now match as literal suffixes
+- Reduce log noise from per-request and per-file warn/error logs
+- Demote shellcheck run error from warn to debug
 
 ### 🚜 Refactor
 
@@ -7,9 +29,19 @@
 - Split find_occurrences_within_tree into variable and function helpers
 - Replace comment_re closure with nested fn comment_text in comments_above
 
+### 📚 Documentation
+
+- Add RUST_LOG=debug instructions to bug report template and contributing guide
+- Add --version and --help to CLI flags table in README
+- Drop --version and --help from CLI flags table
+- Trim --log-level description
+
 ### ⚙️ Miscellaneous Tasks
 
 - Format and changelog
+- Remove redundant comment
+- Update log dependency
+- Rewrite let..else in sourcing.rs to ? for clippy error
 ## [0.2.7] - 2026-05-29
 
 ### 📚 Documentation
