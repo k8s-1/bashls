@@ -27,7 +27,8 @@ pub(super) fn read_editorconfig(path: &str) -> Option<EditorconfigShfmt> {
         let line = line.trim();
         if line.starts_with('[') {
             let section = line.trim_start_matches('[').trim_end_matches(']');
-            in_section = section == "*" || path.ends_with(section.trim_start_matches('*'));
+            let suffix = section.rfind('*').map_or(section, |i| &section[i + 1..]);
+            in_section = suffix.is_empty() || path.ends_with(suffix);
             continue;
         }
         if !in_section {
@@ -147,6 +148,31 @@ mod tests {
         assert!(
             read_editorconfig(&other.to_string_lossy()).is_none(),
             "[foo.sh] should not match bar.sh"
+        );
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn double_glob_section_matches_files_with_matching_extension() {
+        let dir = make_temp_dir("doubleglob");
+        fs::write(
+            dir.join(".editorconfig"),
+            "[**/*.sh]\nshell_variant = posix\n",
+        )
+        .unwrap();
+        let sh = dir.join("foo.sh");
+        let bash = dir.join("foo.bash");
+        fs::write(&sh, "").unwrap();
+        fs::write(&bash, "").unwrap();
+
+        assert!(
+            read_editorconfig(&sh.to_string_lossy()).is_some(),
+            "[**/*.sh] should match foo.sh"
+        );
+        assert!(
+            read_editorconfig(&bash.to_string_lossy()).is_none(),
+            "[**/*.sh] should not match foo.bash"
         );
 
         fs::remove_dir_all(&dir).ok();
