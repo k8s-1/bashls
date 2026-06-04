@@ -141,7 +141,9 @@ impl Linter {
             .map_err(|e| e.to_string())?;
 
         if let Some(mut stdin) = proc.stdin.take() {
-            let _ = stdin.write_all(content.as_bytes());
+            stdin
+                .write_all(content.as_bytes())
+                .map_err(|e| e.to_string())?;
         }
 
         let output = proc.wait_with_output().map_err(|e| e.to_string())?;
