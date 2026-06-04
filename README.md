@@ -113,7 +113,7 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 
 | Flag | Description |
 |---|---|
-| `--log-level` | Log verbosity: `error` (default), `warn`, `info`, `debug`, `trace`. |
+| `--log-level` | `error` (default), `warn`, `info`, `debug`, `trace` |
 
 ## Limitations
 
