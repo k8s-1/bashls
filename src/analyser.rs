@@ -141,7 +141,7 @@ impl Analyser {
                     }
                     self.analyze(&uri, &content);
                 }
-                Err(e) => log::warn!(
+                Err(e) => log::debug!(
                     "BackgroundAnalysis: failed reading {}: {}",
                     path.display(),
                     e
@@ -733,7 +733,7 @@ impl Analyser {
             Ok(content) => {
                 self.analyze(uri, &content);
             }
-            Err(e) => log::warn!("Failed to analyze {uri}: {e}"),
+            Err(e) => log::debug!("Failed to analyze {uri}: {e}"),
         }
     }
 }

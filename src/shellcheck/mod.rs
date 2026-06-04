@@ -96,7 +96,7 @@ impl Linter {
         ) {
             Ok(result) => map_shellcheck_result(uri, result),
             Err(e) => {
-                log::error!("ShellCheck error: {e}");
+                log::warn!("ShellCheck error: {e}");
                 LintingResult::default()
             }
         }
