@@ -144,9 +144,7 @@ fn get_sourced_path_info(node: tree_sitter::Node<'_>, source: &[u8]) -> Option<S
             named.len() <= 2 && named.get(1).is_none_or(|n| n.kind() == "string_content");
         if first_is_expansion && rest_are_static {
             let text = arg_node.utf8_text(source).unwrap_or("");
-            let Some(inner) = text.get(1..text.len().saturating_sub(1)) else {
-                return None;
-            };
+            let inner = text.get(1..text.len().saturating_sub(1))?;
             let var_text = named[0].utf8_text(source).unwrap_or("");
             if inner.starts_with(&format!("{var_text}/")) {
                 return Some(SourcedPathInfo {
