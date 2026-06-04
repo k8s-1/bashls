@@ -68,7 +68,7 @@ impl Analyser {
         };
 
         if tree.root_node().has_error() {
-            log::debug!("Syntax error while parsing {uri}");
+            log::warn!("Syntax error while parsing {uri}");
         }
 
         let source_bytes = source.as_bytes();
@@ -141,7 +141,7 @@ impl Analyser {
                     }
                     self.analyze(&uri, &content);
                 }
-                Err(e) => log::debug!(
+                Err(e) => log::warn!(
                     "BackgroundAnalysis: failed reading {}: {}",
                     path.display(),
                     e
@@ -733,7 +733,7 @@ impl Analyser {
             Ok(content) => {
                 self.analyze(uri, &content);
             }
-            Err(e) => log::debug!("Failed to analyze {uri}: {e}"),
+            Err(e) => log::warn!("Failed to analyze {uri}: {e}"),
         }
     }
 }

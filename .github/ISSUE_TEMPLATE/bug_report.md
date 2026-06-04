@@ -13,7 +13,7 @@ about: Something isn't working
 
 Run with debug logging enabled and paste any relevant output:
 ```sh
-RUST_LOG=debug bashls
+bashls --log-level debug
 ```
 
 **Environment**
