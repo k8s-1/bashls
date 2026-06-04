@@ -7,7 +7,7 @@ Open a GitHub issue. Include:
 - What you did, what you expected, what happened
 - OS and editor
 - `bashls` version (`bashls --version`)
-- Relevant log output if available
+- Relevant log output — run with `RUST_LOG=debug bashls` to enable debug logging; most diagnostic output is only visible at this level
 
 ## Pull requests
 

@@ -9,6 +9,13 @@ about: Something isn't working
 
 **Steps to reproduce**
 
+**Logs**
+
+Run with debug logging enabled and paste any relevant output:
+```sh
+RUST_LOG=debug bashls
+```
+
 **Environment**
 - OS:
 - Editor:
