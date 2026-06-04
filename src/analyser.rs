@@ -68,7 +68,7 @@ impl Analyser {
         };
 
         if tree.root_node().has_error() {
-            log::warn!("Syntax error while parsing {uri}");
+            log::debug!("Syntax error while parsing {uri}");
         }
 
         let source_bytes = source.as_bytes();
