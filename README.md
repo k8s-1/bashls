@@ -109,6 +109,12 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
 | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
 
+### CLI flags
+
+| Flag | Default | Description |
+|---|---|---|
+| `--log-level` | `error` | Log verbosity: `error`, `warn`, `info`, `debug`, `trace`. Pass via the editor's server command, e.g. `cmd = { 'bashls', '--log-level', 'warn' }`. |
+
 ## Limitations
 
 - **No [explainshell](https://explainshell.com) integration.** Supporting this would require pulling in an HTTP/TLS stack (~50 crates); skipped intentionally to keep the dependency footprint small.

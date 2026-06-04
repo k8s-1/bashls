@@ -1,3 +1,5 @@
+const VALID_LOG_LEVELS: &[&str] = &["error", "warn", "info", "debug", "trace"];
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
@@ -10,6 +12,15 @@ fn main() {
                 .and_then(|i| args.get(i + 1).cloned())
         })
         .unwrap_or_else(|| "error".to_string());
+
+    if !VALID_LOG_LEVELS.contains(&log_level.as_str()) {
+        eprintln!(
+            "Invalid log level '{}'. Valid levels: {}",
+            log_level,
+            VALID_LOG_LEVELS.join(", ")
+        );
+        std::process::exit(1);
+    }
 
     let env = env_logger::Env::default().default_filter_or(format!("bashls={log_level}"));
     env_logger::Builder::from_env(env).init();
