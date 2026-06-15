@@ -3,7 +3,7 @@
 [![CI](https://github.com/k8s-1/bashls/actions/workflows/ci.yml/badge.svg)](https://github.com/k8s-1/bashls/actions/workflows/ci.yml)
 [![crates.io](https://img.shields.io/crates/v/bashls.svg)](https://crates.io/crates/bashls)
 
-A Bash language server (LSP) written in Rust. Single binary — no Node, no npm. Provides IDE features — completions, hover, diagnostics, formatting, rename, and go-to-definition — for shell scripts in any LSP-compatible editor (Neovim, Helix, Zed, Emacs).
+A Bash language server (LSP) written in Rust. Single binary, no Node, no npm. Provides IDE features: completions, hover, diagnostics, formatting, rename, and go-to-definition. Supports shell scripts in any LSP-compatible editor (Neovim, Helix, Zed, Emacs).
 
 ![bashls bash language server demo](assets/demo.gif)
 
@@ -113,12 +113,12 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 
 ## Limitations
 
-- **No [explainshell](https://explainshell.com) integration.** Supporting this would require pulling in an HTTP/TLS stack (~50 crates); skipped intentionally to keep the dependency footprint small.
-- **Linux and macOS only.** This is a bash language server — if you're on Windows, use WSL.
+- **No [explainshell](https://explainshell.com) integration.** Skipped intentionally to keep the dependency footprint small.
+- **Linux and macOS only.**
 
 ## Benchmarks
 
-Measured against [bash-language-server](https://github.com/bash-lsp/bash-language-server) 5.6.0 using 50 `.sh` files from [oh-my-bash](https://github.com/ohmybash/oh-my-bash) as a corpus. Startup is measured cold (no prior Node.js activity); 1500 ms is a typical cold-start. See [examples/lsp_bench.rs](examples/lsp_bench.rs) for the full methodology and instructions to reproduce.
+Measured against [bash-language-server](https://github.com/bash-lsp/bash-language-server) 5.6.0 using 50 `.sh` files from [oh-my-bash](https://github.com/ohmybash/oh-my-bash) as a corpus. See [examples/lsp_bench.rs](examples/lsp_bench.rs) for the full methodology.
 
 <p align="center">
   <picture align="center">
