@@ -7,10 +7,6 @@ A Bash language server (LSP) written in Rust. Single binary — no Node, no npm.
 
 ![bashls bash language server demo](assets/demo.gif)
 
-## Motivation
-
-[bash-language-server](https://github.com/bash-lsp/bash-language-server) errors had pushed my logs past 1 GB. My editor was slowing down. I wanted something self-contained.
-
 ## Features
 
 - Hover documentation
