@@ -111,10 +111,10 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 |---|---|
 | `--log-level` | `error` (default), `warn`, `info`, `debug`, `trace` |
 
-## Limitations
+## Non-Goals
 
-- **No [explainshell](https://explainshell.com) integration.** Skipped intentionally to keep the dependency footprint small.
-- **Linux and macOS only.**
+- Integration with [explainshell](https://explainshell.com) 
+- Windows support
 
 ## Benchmarks
 
