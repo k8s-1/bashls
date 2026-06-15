@@ -1,7 +1,7 @@
 # bashls
 
 [![CI](https://github.com/k8s-1/bashls/actions/workflows/ci.yml/badge.svg)](https://github.com/k8s-1/bashls/actions/workflows/ci.yml)
-[![crates.io](https://img.shields.io/crates/v/bashls.svg)](https://crates.io/crates/bashls)
+[![crates.io](https://img.shields.io/crates/v/bashls.svg?cacheSeconds=0)](https://crates.io/crates/bashls)
 
 A Bash language server (LSP) written in Rust. Single binary, no Node, no npm. Provides IDE features: completions, hover, diagnostics, formatting, rename, and go-to-definition. Supports shell scripts in any LSP-compatible editor (Neovim, Helix, Zed, Emacs).
 
