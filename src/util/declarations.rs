@@ -663,4 +663,177 @@ mod tests {
         assert_eq!(ranges.len(), 1, "expected only outer x=1, got {ranges:?}");
         assert_eq!(ranges[0].start.line, 0);
     }
+
+    #[test]
+    fn occurrences_excludes_variable_reassigned_inside_subshell() {
+        let content = "x=1\n(\n  x=2\n  echo $x\n)\necho $x\n";
+        let (tree, _uri) = parse(content);
+        let ranges = find_occurrences_within_tree(
+            tree.root_node(),
+            content.as_bytes(),
+            "x",
+            SymbolKind::VARIABLE,
+            None,
+            None,
+        );
+        let lines: Vec<u32> = ranges.iter().map(|r| r.start.line).collect();
+        assert_eq!(
+            lines,
+            vec![0, 5],
+            "subshell-local x=2 should shadow the outer x, got {ranges:?}"
+        );
+    }
+
+    #[test]
+    fn occurrences_excludes_function_redefined_inside_subshell() {
+        let content = "foo() { echo 1; }\n(\n  foo() { echo 2; }\n  foo\n)\nfoo\n";
+        let (tree, _uri) = parse(content);
+        let ranges = find_occurrences_within_tree(
+            tree.root_node(),
+            content.as_bytes(),
+            "foo",
+            SymbolKind::FUNCTION,
+            None,
+            None,
+        );
+        let lines: Vec<u32> = ranges.iter().map(|r| r.start.line).collect();
+        assert_eq!(
+            lines,
+            vec![0, 5],
+            "subshell-local foo should shadow the outer function, got {ranges:?}"
+        );
+    }
+
+    #[test]
+    fn global_semantics_stops_at_nested_subshell_boundary() {
+        let content = "(\n  y=2\n  (\n    z=3\n  )\n)\n";
+        let (tree, _uri) = parse(content);
+        let root = tree.root_node();
+        let subshell = root.named_child(0).expect("outer subshell");
+        assert_eq!(subshell.kind(), "subshell");
+
+        let mut boundary = usize::MAX;
+        let (decl, _) = find_declaration_using_global_semantics(
+            subshell,
+            content.as_bytes(),
+            "y",
+            SymbolKind::VARIABLE,
+            "file:///test.sh",
+            "file:///test.sh",
+            Position::new(5, 0),
+            &mut boundary,
+        );
+        assert!(decl.is_some(), "y is declared directly in the subshell");
+
+        let mut boundary = usize::MAX;
+        let (decl, _) = find_declaration_using_global_semantics(
+            subshell,
+            content.as_bytes(),
+            "z",
+            SymbolKind::VARIABLE,
+            "file:///test.sh",
+            "file:///test.sh",
+            Position::new(5, 0),
+            &mut boundary,
+        );
+        assert!(
+            decl.is_none(),
+            "z is declared inside a nested subshell and shouldn't be visible from the outer one"
+        );
+    }
+
+    #[test]
+    fn local_semantics_resolves_declare_and_typeset_keywords() {
+        let content = "foo() {\n  declare x=1\n  typeset y=2\n  echo $x $y\n}\n";
+        let (tree, _uri) = parse(content);
+        let func = tree
+            .root_node()
+            .named_child(0)
+            .expect("function_definition");
+        let body = func.children(&mut func.walk()).last().expect("body");
+
+        let mut boundary = 3;
+        let (decl_x, _) = find_declaration_using_local_semantics(
+            body,
+            content.as_bytes(),
+            "x",
+            Position::new(3, 7),
+            &mut boundary,
+        );
+        assert!(
+            decl_x.is_some(),
+            "declare should count as a local declaration"
+        );
+
+        let mut boundary = 3;
+        let (decl_y, _) = find_declaration_using_local_semantics(
+            body,
+            content.as_bytes(),
+            "y",
+            Position::new(3, 10),
+            &mut boundary,
+        );
+        assert!(
+            decl_y.is_some(),
+            "typeset should count as a local declaration"
+        );
+    }
+
+    #[test]
+    fn global_semantics_resolves_function_in_subshell_but_not_nested() {
+        let content = "(\n  (\n    greet() { echo hi; }\n  )\n  greet\n)\n";
+        let (tree, _uri) = parse(content);
+        let outer = tree.root_node().named_child(0).expect("outer subshell");
+        assert_eq!(outer.kind(), "subshell");
+
+        let mut boundary = usize::MAX;
+        let (decl, _) = find_declaration_using_global_semantics(
+            outer,
+            content.as_bytes(),
+            "greet",
+            SymbolKind::FUNCTION,
+            "file:///test.sh",
+            "file:///test.sh",
+            Position::new(4, 0),
+            &mut boundary,
+        );
+        assert!(
+            decl.is_none(),
+            "greet is declared inside a nested subshell and shouldn't be visible from the outer one"
+        );
+    }
+
+    #[test]
+    fn global_semantics_resolves_read_command_variable() {
+        let content = "read x\necho $x\n";
+        let (tree, _uri) = parse(content);
+        let root = tree.root_node();
+
+        let mut boundary = usize::MAX;
+        let (decl, _) = find_declaration_using_global_semantics(
+            root,
+            content.as_bytes(),
+            "x",
+            SymbolKind::VARIABLE,
+            "file:///test.sh",
+            "file:///test.sh",
+            Position::new(1, 5),
+            &mut boundary,
+        );
+        assert!(decl.is_some(), "`read x` should declare x");
+        assert_eq!(decl.unwrap().start.line, 0);
+    }
+
+    #[test]
+    fn colon_default_value_idiom_declares_variable() {
+        // `: "${VAR:=default}"` is a common bash idiom for setting a default value;
+        // it never appears as a plain `variable_assignment` node so it needs its own case.
+        let content = ": \"${MY_VAR:=default}\"\n";
+        let (tree, uri) = parse(content);
+        let decls = get_all_declarations_in_tree(&tree, &uri, content.as_bytes());
+        assert!(
+            decls.iter().any(|s| s.name == "MY_VAR"),
+            "expected MY_VAR to be declared, got {decls:?}"
+        );
+    }
 }
