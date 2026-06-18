@@ -31,6 +31,7 @@
 
 - Update dependencies
 - Format
+- Bump version to 0.2.9
 ## [0.2.8] - 2026-06-04
 
 ### 🚀 Features
