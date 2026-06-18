@@ -199,4 +199,88 @@ mod tests {
 
         fs::remove_dir_all(&dir).ok();
     }
+
+    #[test]
+    fn search_walks_up_to_parent_directory() {
+        let dir = make_temp_dir("walkup");
+        let subdir = dir.join("sub");
+        fs::create_dir_all(&subdir).unwrap();
+        fs::write(dir.join(".editorconfig"), "[*]\nshell_variant = mksh\n").unwrap();
+        let file = subdir.join("foo.sh");
+        fs::write(&file, "").unwrap();
+
+        let result = read_editorconfig(&file.to_string_lossy());
+        assert!(
+            result.is_some(),
+            "should find .editorconfig in an ancestor directory"
+        );
+        assert_eq!(result.unwrap().language_dialect.as_deref(), Some("mksh"));
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn parses_all_boolean_keys() {
+        let dir = make_temp_dir("boolkeys");
+        fs::write(
+            dir.join(".editorconfig"),
+            "[*]\nbinary_next_line = true\nfunction_next_line = true\nkeep_padding = true\nspace_redirects = true\n",
+        )
+        .unwrap();
+        let file = dir.join("foo.sh");
+        fs::write(&file, "").unwrap();
+
+        let result = read_editorconfig(&file.to_string_lossy()).expect("should parse config");
+        assert_eq!(result.binary_next_line, Some(true));
+        assert_eq!(result.func_next_line, Some(true));
+        assert_eq!(result.keep_padding, Some(true));
+        assert_eq!(result.space_redirects, Some(true));
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn no_relevant_keys_returns_none() {
+        let dir = make_temp_dir("norelevant");
+        fs::write(dir.join(".editorconfig"), "[*]\nindent_size = 2\n").unwrap();
+        let file = dir.join("foo.sh");
+        fs::write(&file, "").unwrap();
+
+        assert!(
+            read_editorconfig(&file.to_string_lossy()).is_none(),
+            "editorconfig with no shfmt-relevant keys should yield None"
+        );
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn apply_editorconfig_overrides_only_set_fields() {
+        let base = ShfmtConfig {
+            path: "custom_shfmt".to_string(),
+            simplify_code: true,
+            ..ShfmtConfig::default()
+        };
+        let ec = EditorconfigShfmt {
+            binary_next_line: Some(true),
+            case_indent: None,
+            func_next_line: None,
+            keep_padding: None,
+            space_redirects: None,
+            language_dialect: None,
+        };
+
+        let result = apply_editorconfig(base, ec);
+
+        assert!(result.binary_next_line, "set field should be applied");
+        assert!(!result.case_indent, "unset field should keep default");
+        assert_eq!(
+            result.path, "custom_shfmt",
+            "fields not touched by editorconfig should be preserved"
+        );
+        assert!(
+            result.simplify_code,
+            "fields not touched by editorconfig should be preserved"
+        );
+    }
 }
