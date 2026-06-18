@@ -342,7 +342,10 @@ mod tests {
         let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(3, 9));
         assert!(result.is_some());
         let locs = result.unwrap();
-        assert_eq!(locs[0].range.start.line, 1, "expected jump to `declare a=1`");
+        assert_eq!(
+            locs[0].range.start.line, 1,
+            "expected jump to `declare a=1`"
+        );
     }
 
     #[test]
@@ -352,7 +355,10 @@ mod tests {
         let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(3, 12));
         assert!(result.is_some());
         let locs = result.unwrap();
-        assert_eq!(locs[0].range.start.line, 2, "expected jump to `typeset b=2`");
+        assert_eq!(
+            locs[0].range.start.line, 2,
+            "expected jump to `typeset b=2`"
+        );
     }
 
     #[test]
@@ -370,7 +376,8 @@ mod tests {
 
     #[test]
     fn definition_resolves_case_statement_loop_variable() {
-        let content = "for item in \"${arr[@]}\"; do\n  case \"$item\" in\n    a) echo a ;;\n  esac\ndone\n";
+        let content =
+            "for item in \"${arr[@]}\"; do\n  case \"$item\" in\n    a) echo a ;;\n  esac\ndone\n";
         let mut server = make_server(content);
         let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 9));
         assert!(result.is_some());
