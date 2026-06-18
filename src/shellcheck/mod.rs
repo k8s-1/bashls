@@ -260,3 +260,56 @@ fn replacement_to_text_edit(r: &ShellCheckReplacement) -> TextEdit {
         new_text: r.replacement.clone(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn replacement(
+        line: u32,
+        column: u32,
+        end_line: u32,
+        end_column: u32,
+        text: &str,
+    ) -> ShellCheckReplacement {
+        ShellCheckReplacement {
+            line,
+            end_line,
+            column,
+            end_column,
+            replacement: text.to_string(),
+        }
+    }
+
+    #[test]
+    fn replacement_to_text_edit_converts_one_indexed_to_zero_indexed() {
+        let r = replacement(1, 5, 1, 9, "foo");
+        let edit = replacement_to_text_edit(&r);
+        assert_eq!(edit.range.start, Position::new(0, 4));
+        assert_eq!(edit.range.end, Position::new(0, 8));
+        assert_eq!(edit.new_text, "foo");
+    }
+
+    #[test]
+    fn get_text_edits_returns_none_for_empty_replacements() {
+        assert!(get_text_edits(&[]).is_none());
+    }
+
+    #[test]
+    fn get_text_edits_sorts_replacements_in_reverse_position_order() {
+        // shellcheck fixes are meant to be applied bottom-to-top so earlier offsets
+        // in the document aren't invalidated by edits made later in the same fix
+        let replacements = vec![
+            replacement(1, 1, 1, 2, "a"),
+            replacement(3, 1, 3, 2, "c"),
+            replacement(2, 5, 2, 6, "b"),
+        ];
+        let edits = get_text_edits(&replacements).expect("should produce edits");
+        let lines: Vec<u32> = edits.iter().map(|e| e.range.start.line).collect();
+        assert_eq!(
+            lines,
+            vec![2, 1, 0],
+            "edits should be sorted by descending line, got {edits:?}"
+        );
+    }
+}
