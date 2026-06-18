@@ -1,3 +1,36 @@
+## [0.2.9] - 2026-06-18
+
+### 🐛 Bug Fixes
+
+- Address clippy --all-targets findings, widen lint coverage
+- Resolve go-to-definition for variables declared by `read`
+- Resolve symbols when cursor sits on the $/${ expansion sigil
+
+### 🚜 Refactor
+
+- *(shellcheck)* Pass ShellCheckLevel directly to level_to_severity
+
+### 📚 Documentation
+
+- *(readme)* Tighten readme
+- Include --version/--help and --log-level in usage string
+- Highlight single binary / no npm in README intro
+- Update README.md
+- Simplify README.md
+- Move limitations -> non-goals in readme
+- Fix crates io invalid
+- Fix crates io invalid
+
+### 🧪 Testing
+
+- Cover subshell scoping, declare/typeset, read, and colon-default idiom
+- Cover editorconfig ancestor search, all boolean keys, and merge precedence
+- Cover shellcheck fix index conversion and edit ordering
+
+### ⚙️ Miscellaneous Tasks
+
+- Update dependencies
+- Format
 ## [0.2.8] - 2026-06-04
 
 ### 🚀 Features
