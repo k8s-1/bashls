@@ -494,6 +494,38 @@ fn find_declaration_locations_for_sourced_file_path() {
     fs::remove_dir_all(&dir).ok();
 }
 
+#[test]
+fn definition_resolves_function_call_in_sourced_file() {
+    let dir = std::env::temp_dir().join("bashls_test_decl_src_call");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(dir.join("lib.sh"), "greet() {\n  echo \"hi, $1\"\n}\n").unwrap();
+
+    let main_path = dir.join("main.sh");
+    fs::write(&main_path, "source ./lib.sh\n\ngreet \"world\"\n").unwrap();
+
+    let main_uri = format!("file://{}", main_path.display());
+    let content = fs::read_to_string(&main_path).unwrap();
+
+    let parser = create_parser().unwrap();
+    let mut a = Analyser::new(parser, None);
+    a.analyze(&main_uri, &content);
+
+    // position on the `greet` call (line 2, col 0)
+    let locs = a.find_declaration_locations(&main_uri, "greet", Position::new(2, 0));
+    assert!(
+        !locs.is_empty(),
+        "expected `greet` call to resolve into the sourced file"
+    );
+    assert!(
+        locs[0].uri.as_str().contains("lib.sh"),
+        "expected lib.sh in location uri, got {}",
+        locs[0].uri.as_str(),
+    );
+    assert_eq!(locs[0].range.start.line, 0, "expected jump to `greet() {{`");
+
+    fs::remove_dir_all(&dir).ok();
+}
+
 // --- scope-aware declarations (findDeclarationsMatchingWord) ---
 
 #[test]

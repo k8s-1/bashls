@@ -283,6 +283,142 @@ mod tests {
     }
 
     #[test]
+    fn definition_resolves_variable_with_cursor_on_dollar_sigil() {
+        let content = "myvar=hello\necho \"$myvar\"\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 6));
+        assert!(
+            result.is_some(),
+            "definition should resolve when cursor sits on the '$' itself"
+        );
+        let locs = result.unwrap();
+        assert_eq!(locs[0].range.start.line, 0);
+    }
+
+    #[test]
+    fn definition_resolves_variable_declared_by_read() {
+        let content = "read -r name\necho \"$name\"\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 7));
+        assert!(
+            result.is_some(),
+            "definition should resolve for a variable declared by `read`"
+        );
+        let locs = result.unwrap();
+        assert_eq!(locs[0].range.start.line, 0);
+    }
+
+    #[test]
+    fn definition_skips_subshell_local_reassignment() {
+        // x=1 \n ( \n   x=2 \n   echo "$x" \n ) \n echo "$x"
+        let content = "x=1\n(\n  x=2\n  echo \"$x\"\n)\necho \"$x\"\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(3, 9));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(
+            locs[0].range.start.line, 2,
+            "reference inside the subshell should resolve to the subshell-local x=2"
+        );
+    }
+
+    #[test]
+    fn definition_outer_reference_resolves_past_subshell() {
+        let content = "x=1\n(\n  x=2\n  echo \"$x\"\n)\necho \"$x\"\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(5, 7));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(
+            locs[0].range.start.line, 0,
+            "reference outside the subshell should resolve to the outer x=1, not the subshell-local x=2"
+        );
+    }
+
+    #[test]
+    fn definition_resolves_declare_keyword_variable() {
+        let content = "foo() {\n  declare a=1\n  typeset b=2\n  echo \"$a $b\"\n}\nfoo\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(3, 9));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(locs[0].range.start.line, 1, "expected jump to `declare a=1`");
+    }
+
+    #[test]
+    fn definition_resolves_typeset_keyword_variable() {
+        let content = "foo() {\n  declare a=1\n  typeset b=2\n  echo \"$a $b\"\n}\nfoo\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(3, 12));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(locs[0].range.start.line, 2, "expected jump to `typeset b=2`");
+    }
+
+    #[test]
+    fn definition_resolves_colon_default_idiom() {
+        let content = ": \"${MY_VAR:=default_value}\"\necho \"$MY_VAR\"\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 7));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(
+            locs[0].range.start.line, 0,
+            "expected jump into the `: \"${{VAR:=default}}\"` idiom"
+        );
+    }
+
+    #[test]
+    fn definition_resolves_case_statement_loop_variable() {
+        let content = "for item in \"${arr[@]}\"; do\n  case \"$item\" in\n    a) echo a ;;\n  esac\ndone\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 9));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(
+            locs[0].range.start.line, 0,
+            "case-matched variable should resolve to the enclosing `for item in`"
+        );
+    }
+
+    #[test]
+    fn definition_resolves_array_variable_from_subscript() {
+        let content = "arr=(a b c)\necho \"${arr[0]}\"\n";
+        let mut server = make_server(content);
+        let result = handle_goto_definition(&mut server, URI, lsp_types::Position::new(1, 8));
+        assert!(result.is_some());
+        let locs = result.unwrap();
+        assert_eq!(
+            locs[0].range.start.line, 0,
+            "array subscript reference should resolve to the array assignment"
+        );
+    }
+
+    #[test]
+    fn hover_on_array_variable_returns_info_not_error() {
+        let content = "arr=(a b c)\necho \"${arr[0]}\"\n";
+        let mut server = make_server(content);
+        let result = handle_hover(&mut server, URI, lsp_types::Position::new(1, 8));
+        assert!(
+            result.is_some(),
+            "hover on array variable should return info, not nothing/error"
+        );
+    }
+
+    // --- document symbols ---
+
+    #[test]
+    fn document_symbols_exclude_heredoc_content() {
+        let content = "cat <<EOF\nx=1\necho $x\nEOF\n\necho \"after heredoc\"\n";
+        let server = make_server(content);
+        let syms = server.analyser.get_declarations_for_uri(URI);
+        assert!(
+            !syms.iter().any(|s| s.name == "x"),
+            "heredoc body must not be parsed as bash declarations, got {syms:?}"
+        );
+    }
+
+    #[test]
     fn definition_at_whitespace_returns_none() {
         let content = "echo hi\n";
         let mut server = make_server(content);
@@ -421,6 +557,29 @@ mod tests {
         let changes = edit.changes.unwrap();
         let edits: Vec<_> = changes.values().flatten().collect();
         assert_eq!(edits.len(), 3, "rename should produce 3 edits for myvar");
+    }
+
+    #[test]
+    fn rename_respects_subshell_scope() {
+        // x=1 \n ( \n   x=2 \n   echo "$x" \n ) \n echo "$x"
+        let content = "x=1\n(\n  x=2\n  echo \"$x\"\n)\necho \"$x\"\n";
+        let mut server = make_server(content);
+        let result = handle_rename(&mut server, URI, lsp_types::Position::new(0, 0), "renamed");
+        assert!(result.is_some());
+        let edit = result.unwrap();
+        #[allow(clippy::mutable_key_type)]
+        let changes = edit.changes.unwrap();
+        let mut lines: Vec<u32> = changes
+            .values()
+            .flatten()
+            .map(|e| e.range.start.line)
+            .collect();
+        lines.sort_unstable();
+        assert_eq!(
+            lines,
+            vec![0, 5],
+            "rename of outer x should only touch lines 0 and 5, not the subshell-local x=2/echo on lines 2-3"
+        );
     }
 
     // --- handle_formatting ---

@@ -25,6 +25,21 @@ pub const fn position_to_point(p: Position) -> Point {
     }
 }
 
+/// If `node` is the `$`/`${` token of a variable expansion, returns the
+/// enclosing `variable_name` node instead (cursor sitting on the sigil
+/// should resolve the same as sitting on the name).
+#[must_use]
+pub fn resolve_expansion_sigil(node: Node<'_>) -> Node<'_> {
+    if !matches!(node.kind(), "$" | "${") {
+        return node;
+    }
+    node.parent()
+        .filter(|p| matches!(p.kind(), "simple_expansion" | "expansion"))
+        .and_then(|p| p.named_child(0))
+        .filter(|n| n.kind() == "variable_name")
+        .unwrap_or(node)
+}
+
 #[must_use]
 pub fn is_variable_in_read_command(node: Node<'_>, source: &[u8]) -> bool {
     if node.kind() != "word" {

@@ -11,6 +11,7 @@ use crate::util::shebang::analyze_file;
 use crate::util::sourcing::{SourceCommand, get_source_commands};
 use crate::util::tree_sitter::{
     find_parent, for_each, is_variable_in_read_command, node_range, position_to_point,
+    resolve_expansion_sigil,
 };
 use lsp_types::{
     Diagnostic, DiagnosticSeverity, Location, Position, Range, SymbolInformation, SymbolKind, Uri,
@@ -160,6 +161,7 @@ impl Analyser {
             character: col,
         });
         let node = doc.tree.root_node().descendant_for_point_range(pt, pt)?;
+        let node = resolve_expansion_sigil(node);
         if node.child_count() > 0 {
             return None;
         }
@@ -301,6 +303,7 @@ impl Analyser {
             character: col,
         });
         let node = doc.tree.root_node().descendant_for_point_range(pt, pt)?;
+        let node = resolve_expansion_sigil(node);
         let source = doc.source.as_bytes();
 
         if node.kind() == "variable_name" {
