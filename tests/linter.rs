@@ -100,7 +100,7 @@ fn source_path_arg_passed_to_shellcheck() {
     fs::create_dir_all(&dir).unwrap();
     fs::write(dir.join("sourced.sh"), "sourced_var=1\n").unwrap();
 
-    let content = format!("#!/bin/bash\nsource sourced.sh\necho \"$sourced_var\"\n");
+    let content = "#!/bin/bash\nsource sourced.sh\necho \"$sourced_var\"\n".to_string();
     let l = Linter::new(SHELLCHECK.to_string(), true);
     let source_paths = vec![dir.to_string_lossy().into_owned()];
     let result = l.lint(URI, &content, &source_paths, &[]);

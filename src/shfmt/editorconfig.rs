@@ -75,6 +75,28 @@ fn find_editorconfig(path: &str) -> Option<std::path::PathBuf> {
     None
 }
 
+pub(super) fn apply_editorconfig(mut config: ShfmtConfig, ec: EditorconfigShfmt) -> ShfmtConfig {
+    if let Some(v) = ec.binary_next_line {
+        config.binary_next_line = v;
+    }
+    if let Some(v) = ec.case_indent {
+        config.case_indent = v;
+    }
+    if let Some(v) = ec.func_next_line {
+        config.func_next_line = v;
+    }
+    if let Some(v) = ec.keep_padding {
+        config.keep_padding = v;
+    }
+    if let Some(v) = ec.space_redirects {
+        config.space_redirects = v;
+    }
+    if let Some(v) = ec.language_dialect {
+        config.language_dialect = v;
+    }
+    config
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -177,26 +199,4 @@ mod tests {
 
         fs::remove_dir_all(&dir).ok();
     }
-}
-
-pub(super) fn apply_editorconfig(mut config: ShfmtConfig, ec: EditorconfigShfmt) -> ShfmtConfig {
-    if let Some(v) = ec.binary_next_line {
-        config.binary_next_line = v;
-    }
-    if let Some(v) = ec.case_indent {
-        config.case_indent = v;
-    }
-    if let Some(v) = ec.func_next_line {
-        config.func_next_line = v;
-    }
-    if let Some(v) = ec.keep_padding {
-        config.keep_padding = v;
-    }
-    if let Some(v) = ec.space_redirects {
-        config.space_redirects = v;
-    }
-    if let Some(v) = ec.language_dialect {
-        config.language_dialect = v;
-    }
-    config
 }

@@ -401,6 +401,7 @@ mod tests {
         );
         assert!(result.is_some(), "rename should produce a WorkspaceEdit");
         let edit = result.unwrap();
+        #[allow(clippy::mutable_key_type)]
         let changes = edit.changes.unwrap();
         let edits: Vec<_> = changes.values().flatten().collect();
         assert!(
@@ -416,6 +417,7 @@ mod tests {
         let result = handle_rename(&mut server, URI, lsp_types::Position::new(0, 0), "newvar");
         assert!(result.is_some());
         let edit = result.unwrap();
+        #[allow(clippy::mutable_key_type)]
         let changes = edit.changes.unwrap();
         let edits: Vec<_> = changes.values().flatten().collect();
         assert_eq!(edits.len(), 3, "rename should produce 3 edits for myvar");

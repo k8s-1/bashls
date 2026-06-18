@@ -70,10 +70,10 @@ fn reader_thread(stdout: std::process::ChildStdout, tx: mpsc::Sender<(u64, Insta
         if reader.read_exact(&mut body).is_err() {
             return;
         }
-        if let Ok(msg) = serde_json::from_slice::<Value>(&body) {
-            if let Some(id) = msg["id"].as_u64() {
-                let _ = tx.send((id, Instant::now()));
-            }
+        if let Ok(msg) = serde_json::from_slice::<Value>(&body)
+            && let Some(id) = msg["id"].as_u64()
+        {
+            let _ = tx.send((id, Instant::now()));
         }
     }
 }
@@ -288,7 +288,7 @@ fn main() {
     let files: Vec<(String, String)> = WalkDir::new(&corpus_dir)
         .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().map_or(false, |ext| ext == "sh"))
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "sh"))
         .take(corpus_max)
         .filter_map(|e| {
             let path = e.path().to_string_lossy().into_owned();

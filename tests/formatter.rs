@@ -181,7 +181,7 @@ fn language_dialect_posix() {
     let result = f
         .format(URI, content, Some(&opts(true, 2)), &config)
         .unwrap();
-    assert!(!result.is_empty() || true);
+    assert!(!result.is_empty());
 }
 
 #[test]

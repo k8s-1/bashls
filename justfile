@@ -15,7 +15,7 @@ check:
 
 # run clippy lints
 lint:
-    cargo clippy -- -D warnings
+    cargo clippy --all-targets -- -D warnings
 
 # run clippy with pedantic and nursery lints (informational — some noise expected)
 lint-strict:
