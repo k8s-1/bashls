@@ -120,6 +120,11 @@ fn get_all_global_variable_declarations(root: Node<'_>, uri: &Uri, source: &[u8]
             {
                 result.entry(sym.name.clone()).or_default().push(sym);
             }
+        } else if node.kind() == "word"
+            && is_variable_in_read_command(node, source)
+            && let Some(sym) = get_declaration_symbol(node, uri, source)
+        {
+            result.entry(sym.name.clone()).or_default().push(sym);
         }
         true
     });
@@ -201,6 +206,24 @@ pub fn get_declaration_symbol(
             }
         }
         None
+    } else if node.kind() == "word" && is_variable_in_read_command(node, source) {
+        let name = node.utf8_text(source).ok()?.to_string();
+        let container_name = find_parent(node, |p| p.kind() == "function_definition")
+            .and_then(|n| n.named_child(0))
+            .and_then(|n| n.utf8_text(source).ok())
+            .map(std::string::ToString::to_string);
+        #[allow(deprecated)]
+        Some(SymbolInformation {
+            name,
+            kind: SymbolKind::VARIABLE,
+            tags: None,
+            deprecated: None,
+            location: Location {
+                uri: uri.clone(),
+                range: node_range(node),
+            },
+            container_name,
+        })
     } else {
         None
     }
