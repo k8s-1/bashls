@@ -1,3 +1,12 @@
+## [0.2.10] - 2026-08-05
+
+### 📚 Documentation
+
+- Add 0.2.9 changelog
+
+### ⚙️ Miscellaneous Tasks
+
+- Update dependencies
 ## [0.2.9] - 2026-06-18
 
 ### 🐛 Bug Fixes
