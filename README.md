@@ -29,7 +29,11 @@ Diagnostics and formatting require additional tools:
 - [shfmt](https://github.com/mvdan/sh)
 
 #### Binary
-Download from [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
+```
+curl -fsSL https://raw.githubusercontent.com/k8s-1/bashls/main/install.sh | sh
+```
+
+Or download from the [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
 
 #### Cargo
 ```
@@ -49,7 +53,7 @@ bashls works with any editor that supports LSP.
 
 ### VS Code
 
-Install the [latest release](https://github.com/k8s-1/bashls/releases):
+Install `bashls` (see [Binary](#binary) install step above), then install the extension:
 
 ```
 curl -fsSL -o bashls.vsix https://github.com/k8s-1/bashls/releases/latest/download/bashls.vsix
