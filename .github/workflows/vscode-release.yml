@@ -35,3 +35,4 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           files: editors/vscode/bashls.vsix
+          make_latest: "false"
