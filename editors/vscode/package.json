@@ -89,7 +89,7 @@
     "watch": "bun build ./src/extension.ts --outdir out --target node --format cjs --external vscode --sourcemap=external --watch"
   },
   "dependencies": {
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
