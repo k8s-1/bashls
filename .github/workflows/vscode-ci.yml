@@ -1,0 +1,38 @@
+name: VS Code extension CI
+
+concurrency:
+  group: vscode-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'editors/vscode/**'
+      - '.github/workflows/vscode-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'editors/vscode/**'
+      - '.github/workflows/vscode-ci.yml'
+
+defaults:
+  run:
+    working-directory: editors/vscode
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Compile
+        run: bun run compile
+
+      - name: Package extension
+        run: bunx --bun vsce package --no-dependencies

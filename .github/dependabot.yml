@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      cargo-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "bun"
+    directory: "/editors/vscode"
+    schedule:
+      interval: "weekly"
+    groups:
+      bun-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
