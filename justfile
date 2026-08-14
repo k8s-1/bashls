@@ -58,13 +58,16 @@ bench: build
 changelog:
     git-cliff --output CHANGELOG.md
 
-# release: bump version, update changelog, commit, tag, and push
-release version: ci
-    cargo set-version {{version}}
-    git-cliff --tag v{{version}} --output CHANGELOG.md
+# release: bump version (patch/minor/major, default patch), update changelog, commit, tag, and push
+release increment="patch": ci
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cargo set-version --bump {{increment}}
+    version=$(cargo pkgid | sed -E 's/.*[#@]//')
+    git-cliff --tag "v${version}" --output CHANGELOG.md
     git add Cargo.toml Cargo.lock CHANGELOG.md
-    git commit -m "chore: bump version to {{version}}"
-    git tag v{{version}} -m "v{{version}}"
+    git commit -m "chore: bump version to ${version}"
+    git tag "v${version}" -m "v${version}"
     git push origin main --tags
 
 # publish to crates.io
