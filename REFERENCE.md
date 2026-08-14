@@ -1,6 +1,6 @@
 # Reference
 
-## Architecture and Structure
+## Structure
 
 ```
 src/
@@ -14,6 +14,8 @@ src/
 ├── shfmt/              formatting via shfmt
 └── util/               shared helpers (declarations, sourcing, tree-sitter, LSP types, fs, shebang)
 ```
+
+## Architecture
 
 ```mermaid
 flowchart TD
