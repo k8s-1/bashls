@@ -20,6 +20,9 @@ A Bash language server (LSP) written in Rust. Single binary, no Node, no npm. Pr
 
 ## Installation
 
+> [!NOTE]
+> None of the methods below auto-update. Re-run the install step to pick up new releases, including security fixes.
+
 Diagnostics and formatting require additional tools:
 
 - [shellcheck](https://github.com/koalaman/shellcheck)
@@ -43,6 +46,19 @@ cargo build --release
 ## Editor support
 
 bashls works with any editor that supports LSP.
+
+### VS Code
+
+Install the [latest release](https://github.com/k8s-1/bashls/releases):
+
+```
+curl -fsSL -o bashls.vsix https://github.com/k8s-1/bashls/releases/latest/download/bashls.vsix
+code --install-extension bashls.vsix
+```
+
+Works for VS Code, VSCodium, Cursor, Windsurf, and other VS Code forks (use `code`, `codium`, `cursor`, etc. in place of `code` above).
+
+If `bashls` isn't on your `$PATH`, the extension offers to auto-install it, or you can point it at a binary yourself via the `bashls.path` setting. See [editors/vscode](editors/vscode#settings) for the full settings list.
 
 ### Neovim
 
@@ -98,6 +114,7 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 |---|---|---|
 | `shellcheckPath` | `shellcheck` | Path to shellcheck binary. |
 | `shellcheckArguments` | `[]` | Additional arguments passed to [shellcheck](https://github.com/koalaman/shellcheck). |
+| `shellcheckExternalSources` | `true` | Allow shellcheck to follow sourced files outside the workspace. |
 | `shfmt.path` | `shfmt` | Path to shfmt binary. |
 | `shfmt.*` | | See [shfmt](https://github.com/mvdan/sh) for remaining options. |
 | `globPattern` | `**/*@(.sh\|.inc\|.bash\|.command)` | Files the server treats as bash. |
@@ -110,6 +127,8 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | Flag | Description |
 |---|---|
 | `--log-level` | `error` (default), `warn`, `info`, `debug`, `trace` |
+| `--version`, `-v` | Print version |
+| `--help`, `-h` | Print usage |
 
 ## Non-Goals
 
@@ -127,6 +146,16 @@ Measured against [bash-language-server](https://github.com/bash-lsp/bash-languag
     <img alt="Benchmark results comparing bashls to bash-language-server." src="https://raw.githubusercontent.com/k8s-1/bashls/main/assets/benchmark-dark.svg">
   </picture>
 </p>
+
+## Architecture
+
+See [REFERENCE.md](REFERENCE.md) for the folder structure and an architecture diagram.
+
+## Contributing
+
+Contributions and feedback on improvements are welcome!
+
+Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
