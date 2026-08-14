@@ -165,7 +165,7 @@ Measured against [bash-language-server](https://github.com/bash-lsp/bash-languag
   </picture>
 </p>
 
-## Architecture and Structure
+## Architecture
 
 See [REFERENCE.md](REFERENCE.md).
 
