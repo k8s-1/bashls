@@ -2,7 +2,7 @@
   "name": "bashls",
   "displayName": "bashls",
   "description": "Bash Language Server: completions, hover, diagnostics, formatting, rename, go-to-definition",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "k8s-1",
   "license": "MIT",
   "repository": {
@@ -44,61 +44,63 @@
         },
         "bashls.shellcheckArguments": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": [],
-          "description": "Additional arguments passed to shellcheck."
+          "items": {
+          "type": "string"
         },
-        "bashls.shellcheckExternalSources": {
-          "type": "boolean",
-          "default": true,
-          "description": "Allow shellcheck to follow sourced files outside the workspace."
-        },
-        "bashls.shfmt.path": {
-          "type": "string",
-          "default": "shfmt",
-          "description": "Path to the shfmt binary."
-        },
-        "bashls.globPattern": {
-          "type": "string",
-          "default": "**/*@(.sh|.inc|.bash|.command)",
-          "description": "Files the server treats as bash."
-        },
-        "bashls.backgroundAnalysisMaxFiles": {
-          "type": "number",
-          "default": 500,
-          "description": "Max files to analyse in background for workspace-wide features."
-        },
-        "bashls.includeAllWorkspaceSymbols": {
-          "type": "boolean",
-          "default": false,
-          "description": "Return functions and variables from all workspace files in symbol search, not just open files."
-        },
-        "bashls.enableSourceErrorDiagnostics": {
-          "type": "boolean",
-          "default": false,
-          "description": "Show diagnostics when a source/. command cannot be resolved."
-        }
+        "default": [],
+        "description": "Additional arguments passed to shellcheck."
+      },
+      "bashls.shellcheckExternalSources": {
+        "type": "boolean",
+        "default": true,
+        "description": "Allow shellcheck to follow sourced files outside the workspace."
+      },
+      "bashls.shfmt.path": {
+        "type": "string",
+        "default": "shfmt",
+        "description": "Path to the shfmt binary."
+      },
+      "bashls.globPattern": {
+        "type": "string",
+        "default": "**/*@(.sh|.inc|.bash|.command)",
+        "description": "Files the server treats as bash."
+      },
+      "bashls.backgroundAnalysisMaxFiles": {
+        "type": "number",
+        "default": 500,
+        "description": "Max files to analyse in background for workspace-wide features."
+      },
+      "bashls.includeAllWorkspaceSymbols": {
+        "type": "boolean",
+        "default": false,
+        "description": "Return functions and variables from all workspace files in symbol search, not just open files."
+      },
+      "bashls.enableSourceErrorDiagnostics": {
+        "type": "boolean",
+        "default": false,
+        "description": "Show diagnostics when a source/. command cannot be resolved."
       }
     }
-  },
-  "scripts": {
-    "vscode:prepublish": "bun run compile",
-    "typecheck": "tsc -p ./",
-    "build": "bun build ./src/extension.ts --outdir out --target node --format cjs --external vscode --sourcemap=external",
-    "compile": "bun run typecheck && bun run build",
-    "watch": "bun build ./src/extension.ts --outdir out --target node --format cjs --external vscode --sourcemap=external --watch"
-  },
-  "dependencies": {
-    "vscode-languageclient": "^10.1.0"
-  },
-  "devDependencies": {
-    "@types/node": "^26.2.0",
-    "@types/vscode": "^1.85.0",
-    "@vscode/vsce": "^3.2.1",
-    "typescript": "^7.0.2"
-  },
-  "packageManager": "bun@1.3.12",
-  "trustedDependencies": [
-    "@vscode/vsce-sign"
-  ]
+  }
+},
+"scripts": {
+  "vscode:prepublish": "bun run compile",
+  "typecheck": "tsc -p ./",
+  "build": "bun build ./src/extension.ts --outdir out --target node --format cjs --external vscode --sourcemap=external",
+  "compile": "bun run typecheck && bun run build",
+  "watch": "bun build ./src/extension.ts --outdir out --target node --format cjs --external vscode --sourcemap=external --watch"
+},
+"dependencies": {
+  "vscode-languageclient": "^10.1.0"
+},
+"devDependencies": {
+  "@types/node": "^26.2.0",
+  "@types/vscode": "^1.85.0",
+  "@vscode/vsce": "^3.2.1",
+  "typescript": "^7.0.2"
+},
+"packageManager": "bun@1.3.12",
+"trustedDependencies": [
+  "@vscode/vsce-sign"
+]
 }
