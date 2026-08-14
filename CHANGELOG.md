@@ -1,3 +1,23 @@
+## [0.2.11] - 2026-08-14
+
+### 🚀 Features
+
+- Add vscode support
+- Convenient install script
+
+### 🐛 Bug Fixes
+
+- Use PR author for dependabot auto-merge check
+- *(vscode)* Pin types to node explicitly in tsconfig
+
+### 📚 Documentation
+
+- Update documentation, security, and architecture
+- Add Vim support, simplify architecture diagram
+
+### ⚙️ Miscellaneous Tasks
+
+- Update just release process to minor/major/patch
 ## [0.2.10] - 2026-08-05
 
 ### 📚 Documentation
@@ -7,6 +27,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Update dependencies
+- Bump version to 0.2.10
 ## [0.2.9] - 2026-06-18
 
 ### 🐛 Bug Fixes
