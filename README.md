@@ -53,7 +53,7 @@ bashls works with any editor that supports LSP.
 
 ### VS Code
 
-Install `bashls` (see [Binary](#binary) install step above), then install the extension:
+Install the extension:
 
 ```
 curl -fsSL -o bashls.vsix https://github.com/k8s-1/bashls/releases/latest/download/bashls.vsix
@@ -76,6 +76,20 @@ vim.lsp.config('bashls', {
   -- },
 })
 vim.lsp.enable('bashls')
+```
+
+### Vim
+
+Using [vim-lsp](https://github.com/prabirshrestha/vim-lsp):
+
+```vim
+if executable('bashls')
+  au User lsp_setup call lsp#register_server({
+    \ 'name': 'bashls',
+    \ 'cmd': {server_info->['bashls']},
+    \ 'allowlist': ['sh'],
+    \ })
+endif
 ```
 
 ### Helix
@@ -151,9 +165,9 @@ Measured against [bash-language-server](https://github.com/bash-lsp/bash-languag
   </picture>
 </p>
 
-## Architecture
+## Architecture and Structure
 
-See [REFERENCE.md](REFERENCE.md) for the folder structure and an architecture diagram.
+See [REFERENCE.md](REFERENCE.md).
 
 ## Contributing
 
