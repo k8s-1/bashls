@@ -1,0 +1,22 @@
+default:
+    @just --list
+
+# install dependencies
+install:
+    bun install --frozen-lockfile
+
+# type-check and bundle
+build: install
+    bun run compile
+
+# package into bashls.vsix
+package: build
+    bunx --bun vsce package --no-dependencies -o bashls.vsix
+
+# release: bump version (patch/minor/major/x.y.z, default patch), commit, tag, and push
+release increment="patch": build
+    bun pm version --no-git-tag-version {{increment}}
+    git add package.json bun.lock
+    git commit -m "chore(vscode): bump version to $(bun pm pkg get version | tr -d '\"')"
+    git tag "bashls-vscode@$(bun pm pkg get version | tr -d '\"')" -m "release"
+    git push origin main --tags
