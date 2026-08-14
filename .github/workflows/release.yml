@@ -34,7 +34,7 @@ jobs:
             use_cross: false
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -58,7 +58,7 @@ jobs:
           tar czf bashls-${{ matrix.target }}.tar.gz bashls
           mv bashls-${{ matrix.target }}.tar.gz $GITHUB_WORKSPACE/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bashls-${{ matrix.target }}
           path: bashls-${{ matrix.target }}.tar.gz
@@ -69,14 +69,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           merge-multiple: true
 
       - name: Create checksums
         run: sha256sum bashls-*.tar.gz > checksums.txt
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             bashls-*.tar.gz
