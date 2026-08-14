@@ -137,7 +137,7 @@ fn main_loop(
                     Message::Response(resp) => {
                         if server.pending_config_request_id.as_ref() == Some(&resp.id) {
                             server.pending_config_request_id = None;
-                            if let Some(result) = resp.result {
+                            if let Ok(result) = resp.response_result {
                                 let cfg = result
                                     .as_array()
                                     .and_then(|arr| arr.first())
