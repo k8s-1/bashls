@@ -2,10 +2,10 @@
   <rect width="600" height="190" fill="#ffffff" rx="8"/>
 
   <!-- shared legend -->
-  <rect x="32" y="20" width="10" height="10" fill="#0969da" rx="2"/>
-  <text x="48" y="30" fill="#1f2328" font-size="13" font-weight="600">bash-language-server</text>
-  <rect x="228" y="20" width="10" height="10" fill="#1a7f37" rx="2"/>
-  <text x="244" y="30" fill="#1f2328" font-size="13" font-weight="600">bashls</text>
+  <rect x="50" y="20" width="10" height="10" fill="#0969da" rx="2"/>
+  <text x="66" y="30" fill="#1f2328" font-size="13" font-weight="600">bash-language-server</text>
+  <rect x="246" y="20" width="10" height="10" fill="#1a7f37" rx="2"/>
+  <text x="262" y="30" fill="#1f2328" font-size="13" font-weight="600">bashls</text>
 
   <!-- === STARTUP TIME === -->
   <text x="50" y="62" fill="#1f2328" font-size="16" font-weight="600">Startup</text>
