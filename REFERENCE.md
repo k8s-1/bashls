@@ -16,11 +16,11 @@ src/
 ```
 
 ```mermaid
-flowchart LR
+flowchart TD
     Editor["Editor"] <-->|LSP over stdio| Server
 
     subgraph Server["bashls"]
-        direction LR
+        direction TD
         Dispatch["dispatch"] --> Analyser["analyser<br/>(tree-sitter)"]
         Dispatch --> Handlers["handlers"]
         Handlers --> Analyser
