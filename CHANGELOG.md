@@ -1,3 +1,25 @@
+## [0.2.12] - 2026-10-01
+
+### 🐛 Bug Fixes
+
+- *(ci)* Don't let vscode extension releases override "Latest"
+- *(ci)* Attach vscode vsix to the latest release instead of creating one
+- Align benchmark svg legend with chart columns
+
+### 📚 Documentation
+
+- Use top-down layout for architecture diagram
+
+### ⚙️ Miscellaneous Tasks
+
+- Update file(s): REFERENCE.md
+- Update file(s): README.md
+- *(vscode)* Skip build job when editors/vscode is unchanged (#18)
+## [bashls-vscode@0.1.1] - 2026-08-14
+
+### ⚙️ Miscellaneous Tasks
+
+- *(vscode)* Bump version to 0.1.1
 ## [0.2.11] - 2026-08-14
 
 ### 🚀 Features
@@ -18,6 +40,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Update just release process to minor/major/patch
+- Bump version to 0.2.11
 ## [0.2.10] - 2026-08-05
 
 ### 📚 Documentation
