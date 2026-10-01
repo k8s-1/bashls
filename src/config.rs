@@ -148,7 +148,7 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use super::Config;
+    use super::{Config, ShfmtConfig};
     use serde_json::json;
 
     #[test]
@@ -172,9 +172,14 @@ mod tests {
 
     #[test]
     fn overrides_preserve_unspecified_base_values() {
-        let mut base = Config::default();
-        base.shellcheck_path = "/env/sc".to_string();
-        base.shfmt.language_dialect = "bash".to_string();
+        let base = Config {
+            shellcheck_path: "/env/sc".to_string(),
+            shfmt: ShfmtConfig {
+                language_dialect: "bash".to_string(),
+                ..ShfmtConfig::default()
+            },
+            ..Config::default()
+        };
         let cfg = base
             .with_overrides(&json!({"bashIde": {"shfmt": {"path": "/x/fmt"}}}))
             .unwrap();
