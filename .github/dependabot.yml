@@ -25,6 +25,8 @@ updates:
     directory: "/editors/vscode"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "@types/vscode"
     groups:
       bun-dependencies:
         patterns:
