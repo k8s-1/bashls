@@ -30,7 +30,7 @@ Diagnostics and formatting require additional tools:
 
 #### Binary
 ```
-curl -fsSL https://raw.githubusercontent.com/k8s-1/bashls/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/k8s-1/bashls/main/scripts/install.sh | sh
 ```
 
 Or download from the [releases page](https://github.com/k8s-1/bashls/releases), extract, and place `bashls` somewhere on your `$PATH`.
