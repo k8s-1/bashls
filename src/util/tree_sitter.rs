@@ -117,7 +117,7 @@ where
     F: FnMut(Node<'tree>) -> bool,
 {
     if callback(node) {
-        for i in 0..node.child_count() as u32 {
+        for i in 0..node.child_count() {
             if let Some(child) = node.child(i) {
                 for_each(child, callback);
             }
