@@ -1,3 +1,12 @@
+## [0.2.14] - 2026-10-01
+
+### 🐛 Bug Fixes
+
+- Merge runtime config updates over current config
+
+### 📚 Documentation
+
+- Recommend LSP settings, mention init options as fallback
 ## [0.2.13] - 2026-10-01
 
 ### 🐛 Bug Fixes
@@ -16,6 +25,7 @@
 
 - Move install.sh to scripts/, symlink AGENT.md to CLAUDE.md
 - Move community files to .github/ and docs to docs/
+- Bump version to 0.2.13
 ## [0.2.12] - 2026-10-01
 
 ### 🐛 Bug Fixes
