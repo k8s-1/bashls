@@ -71,7 +71,7 @@ vim.lsp.config('bashls', {
   cmd = { 'bashls' },
   filetypes = { 'sh' },
   root_markers = { '.git' },
-  -- init_options = {
+  -- settings = {
   --   bashIde = { shellcheckPath = '/usr/bin/shellcheck' },
   -- },
 })
@@ -126,9 +126,9 @@ command = "bashls"
 
 ## Configuration
 
-Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`).
+Settings can be provided as LSP `settings` (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`).
 
-In your editor's LSP config, pass these as initialization options (the setting name varies by editor, e.g. `initializationOptions` or `init_options`) with the keys nested under `bashIde`.
+If your editor only supports initialization options, pass the same structure there instead.
 
 | Setting (`bashIde.*`) | Default | Description |
 |---|---|---|
