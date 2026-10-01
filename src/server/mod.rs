@@ -740,6 +740,19 @@ mod tests {
     }
 
     #[test]
+    fn update_config_keeps_unspecified_values() {
+        let mut server = make_server("echo hi\n");
+        server.config.shellcheck_path = "/env/sc".to_string();
+        server.config.shfmt.language_dialect = "bash".to_string();
+        let cfg = serde_json::json!({ "bashIde": { "globPattern": "*.sh", "shfmt": { "path": "/x/fmt" } } });
+        server.update_config(&cfg);
+        assert_eq!(server.config.glob_pattern, "*.sh");
+        assert_eq!(server.config.shellcheck_path, "/env/sc");
+        assert_eq!(server.config.shfmt.path, "/x/fmt");
+        assert_eq!(server.config.shfmt.language_dialect, "bash");
+    }
+
+    #[test]
     fn code_action_matches_diagnostic_id() {
         use lsp_types::{
             CodeActionKind, Diagnostic, DiagnosticSeverity, NumberOrString, Range, WorkspaceEdit,

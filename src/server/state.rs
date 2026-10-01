@@ -89,8 +89,7 @@ impl Server {
     }
 
     pub(crate) fn update_config(&mut self, value: &Value) {
-        let bash_ide = value.get("bashIde").unwrap_or(value);
-        if let Ok(cfg) = serde_json::from_value::<Config>(bash_ide.clone()) {
+        if let Some(cfg) = self.config.with_overrides(value) {
             let old_shellcheck = self.config.shellcheck_path.clone();
             let old_shfmt = self.config.shfmt.path.clone();
             self.config = cfg;
