@@ -169,13 +169,13 @@ Measured against [bash-language-server](https://github.com/bash-lsp/bash-languag
 
 ## Architecture
 
-See [REFERENCE.md](REFERENCE.md).
+See [REFERENCE.md](docs/REFERENCE.md).
 
 ## Contributing
 
 Contributions and feedback on improvements are welcome!
 
-Please refer to [CONTRIBUTING.md](CONTRIBUTING.md).
+Please refer to [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
 ## License
 

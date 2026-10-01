@@ -32,4 +32,4 @@ See `CLAUDE.md` for architecture notes.
 
 ## License
 
-By contributing you agree your changes will be licensed under the same [MIT license](LICENSE) as this project.
+By contributing you agree your changes will be licensed under the same [MIT license](../LICENSE) as this project.
