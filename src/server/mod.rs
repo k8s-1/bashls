@@ -80,6 +80,7 @@ pub fn run() -> Result<()> {
     let config = Config::from_env();
 
     let client_capabilities = init_params.capabilities;
+    let init_options = init_params.initialization_options;
 
     let mut server = Server {
         analyser,
@@ -96,7 +97,7 @@ pub fn run() -> Result<()> {
         formatter: if config.shfmt.path.is_empty() {
             None
         } else {
-            Some(Formatter::new(config.shfmt.path))
+            Some(Formatter::new(config.shfmt.path.clone()))
         },
         workspace_folder,
         documents: HashMap::new(),
@@ -107,6 +108,13 @@ pub fn run() -> Result<()> {
         pending_config_request_id: None,
         next_request_id: 1000,
     };
+
+    let effective = init_options
+        .and_then(|opts| config.with_overrides(&opts))
+        .unwrap_or(config);
+    if let Ok(value) = serde_json::to_value(&effective) {
+        server.update_config(&value);
+    }
 
     let (lint_tx, lint_rx) = crossbeam_channel::unbounded::<LintResult>();
     main_loop(&connection, &mut server, &lint_tx, &lint_rx)?;

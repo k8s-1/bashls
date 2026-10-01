@@ -58,7 +58,34 @@ impl Default for ShfmtConfig {
     }
 }
 
+fn merge_json(base: &mut serde_json::Value, overlay: &serde_json::Value) {
+    match (base, overlay) {
+        (serde_json::Value::Object(b), serde_json::Value::Object(o)) => {
+            for (k, v) in o {
+                match b.get_mut(k) {
+                    Some(existing) => merge_json(existing, v),
+                    None => {
+                        b.insert(k.clone(), v.clone());
+                    }
+                }
+            }
+        }
+        (b, o) => *b = o.clone(),
+    }
+}
+
 impl Config {
+    #[must_use]
+    pub fn with_overrides(&self, value: &serde_json::Value) -> Option<Self> {
+        let overlay = value.get("bashIde").unwrap_or(value);
+        if !overlay.is_object() {
+            return None;
+        }
+        let mut merged = serde_json::to_value(self).ok()?;
+        merge_json(&mut merged, overlay);
+        serde_json::from_value(merged).ok()
+    }
+
     #[must_use]
     pub fn from_env() -> Self {
         let mut cfg = Self::default();
@@ -116,5 +143,58 @@ impl Config {
             cfg.shfmt.ignore_editorconfig = v == "true" || v == "1";
         }
         cfg
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Config;
+    use serde_json::json;
+
+    #[test]
+    fn overrides_under_bash_ide() {
+        let cfg = Config::default()
+            .with_overrides(
+                &json!({"bashIde": {"shellcheckPath": "/x/sc", "shfmt": {"path": "/x/fmt"}}}),
+            )
+            .unwrap();
+        assert_eq!(cfg.shellcheck_path, "/x/sc");
+        assert_eq!(cfg.shfmt.path, "/x/fmt");
+    }
+
+    #[test]
+    fn overrides_flat_object() {
+        let cfg = Config::default()
+            .with_overrides(&json!({"globPattern": "*.sh"}))
+            .unwrap();
+        assert_eq!(cfg.glob_pattern, "*.sh");
+    }
+
+    #[test]
+    fn overrides_preserve_unspecified_base_values() {
+        let mut base = Config::default();
+        base.shellcheck_path = "/env/sc".to_string();
+        base.shfmt.language_dialect = "bash".to_string();
+        let cfg = base
+            .with_overrides(&json!({"bashIde": {"shfmt": {"path": "/x/fmt"}}}))
+            .unwrap();
+        assert_eq!(cfg.shellcheck_path, "/env/sc");
+        assert_eq!(cfg.shfmt.language_dialect, "bash");
+        assert_eq!(cfg.shfmt.path, "/x/fmt");
+    }
+
+    #[test]
+    fn overrides_reject_non_object() {
+        assert!(Config::default().with_overrides(&json!(null)).is_none());
+        assert!(Config::default().with_overrides(&json!("x")).is_none());
+    }
+
+    #[test]
+    fn overrides_reject_wrong_types() {
+        assert!(
+            Config::default()
+                .with_overrides(&json!({"bashIde": {"shellcheckPath": 5}}))
+                .is_none()
+        );
     }
 }

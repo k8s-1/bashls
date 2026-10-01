@@ -128,6 +128,8 @@ command = "bashls"
 
 Settings can be provided as LSP initialization options (under `bashIde`) or as environment variables (e.g. `bashIde.shellcheckPath` → `SHELLCHECK_PATH`).
 
+In your editor's LSP config, pass these as initialization options (the setting name varies by editor, e.g. `initializationOptions` or `init_options`) with the keys nested under `bashIde`.
+
 | Setting (`bashIde.*`) | Default | Description |
 |---|---|---|
 | `shellcheckPath` | `shellcheck` | Path to shellcheck binary. |
