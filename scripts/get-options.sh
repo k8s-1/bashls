@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Flag completion for the LSP. bash-completion's rules are bash functions,
+# so we borrow them here rather than reimplement them in Rust.
+#
+# Example: `ls --al` completes to --all and --almost-all.
+
 # Try and get COMPLETIONSRC using pkg-config
 if COMPLETIONSDIR="$(pkg-config --variable=completionsdir bash-completion)"
 then

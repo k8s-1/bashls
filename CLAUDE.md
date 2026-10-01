@@ -1,6 +1,6 @@
 ## Architecture
 
-- `src/main.rs` — entry point; dispatches `start` or `get-options` subcommands
+- `src/main.rs` — entry point; handles `start`, `--version`, `--help` and `--log-level`
 - `src/lib.rs` — crate root; re-exports all modules
 - `src/server/dispatch.rs` — LSP message loop and request dispatch
 - `src/server/state.rs` — `Server` and `DocumentState` structs
@@ -25,7 +25,8 @@
 - `src/util/lsp.rs` — LSP type conversion helpers
 - `src/util/shebang.rs` — shebang detection
 - `src/util/fs.rs` — URI↔path conversion (`uri_to_path`, `path_to_uri`)
-- `src/util/sh.rs` — shell documentation via `man` / `bash --help`
+- `src/util/sh.rs` — shell documentation via `man` / `bash --help`; option completion via `scripts/get-options.sh`
+- `scripts/get-options.sh` — bash-completion wrapper, embedded in the binary via `include_str!`
 - `bash-language-server/` — the original TypeScript implementation (reference)
 
 ## Key patterns

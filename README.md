@@ -140,6 +140,8 @@ Settings can be provided as LSP initialization options (under `bashIde`) or as e
 | `includeAllWorkspaceSymbols` | `false` | Return functions and variables from all workspace files in symbol search, not just open files. |
 | `enableSourceErrorDiagnostics` | `false` | Show diagnostics when a `source`/`.` command cannot be resolved. |
 
+Flag completion relies on [bash-completion](https://github.com/scop/bash-completion). Set `BASH_LSP_COMPLETE_LONGOPTS=1` to also read flags from a command's `--help`; this runs the command, so it is off by default.
+
 ### CLI flags
 
 | Flag | Description |
