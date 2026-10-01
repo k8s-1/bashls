@@ -1,3 +1,21 @@
+## [0.2.13] - 2026-10-01
+
+### 🐛 Bug Fixes
+
+- Apply LSP initialization options and env config at startup
+
+### 📚 Documentation
+
+- Document get-options.sh and fix stale CLAUDE.md entry
+
+### 🧪 Testing
+
+- Avoid field reassignment after Config::default()
+
+### ⚙️ Miscellaneous Tasks
+
+- Move install.sh to scripts/, symlink AGENT.md to CLAUDE.md
+- Move community files to .github/ and docs to docs/
 ## [0.2.12] - 2026-10-01
 
 ### 🐛 Bug Fixes
@@ -15,6 +33,7 @@
 - Update file(s): REFERENCE.md
 - Update file(s): README.md
 - *(vscode)* Skip build job when editors/vscode is unchanged (#18)
+- Bump version to 0.2.12
 ## [bashls-vscode@0.1.1] - 2026-08-14
 
 ### ⚙️ Miscellaneous Tasks
