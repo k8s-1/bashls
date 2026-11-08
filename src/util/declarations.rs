@@ -538,10 +538,7 @@ fn in_ignored_range(ignored: &[Range], n: Node<'_>) -> bool {
     })
 }
 
-/// Port of TypeScript `findDeclarationUsingLocalSemantics`.
-///
-/// Searches `base_node` (a function's `compound_statement`) for a `local`/`declare`/`typeset`
-/// declaration of `word`. Returns `(declaration_range, continue_searching)`.
+/// Searches `base_node` (a function's `compound_statement`) for a `local`/`declare`/`typeset` declaration of `word`.
 pub fn find_declaration_using_local_semantics(
     base_node: Node<'_>,
     source: &[u8],
