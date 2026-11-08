@@ -3,7 +3,7 @@
 [![CI](https://github.com/k8s-1/bashls/actions/workflows/ci.yml/badge.svg)](https://github.com/k8s-1/bashls/actions/workflows/ci.yml)
 [![crates.io](https://badgers.space/crates/version/bashls)](https://crates.io/crates/bashls)
 
-A Bash language server (LSP) written in Rust. Provides IDE features: completions, hover, diagnostics, formatting, rename, and go-to-definition. Supports shell scripts in any LSP-compatible editor (Neovim, Helix, Zed, Emacs).
+A Bash language server (LSP) written in Rust. Provides IDE features: completions, hover, diagnostics, formatting, rename, and go-to-definition. Supports shell scripts in any LSP-compatible editor (Neovim, Helix, Zed, Emacs, VSCode, VSCodium).
 
 ![bashls bash language server demo](assets/demo.gif)
 
