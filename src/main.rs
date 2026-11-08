@@ -6,12 +6,10 @@ fn main() {
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
-        if let Some(level) = arg.strip_prefix("--log-level=") {
+        if arg == "--log-level" {
+            log_level = args.next().unwrap_or(log_level);
+        } else if let Some(level) = arg.strip_prefix("--log-level=") {
             log_level = level.to_string();
-        } else if arg == "--log-level" {
-            if let Some(level) = args.next() {
-                log_level = level;
-            }
         } else if cmd.is_none() {
             cmd = Some(arg);
         }
