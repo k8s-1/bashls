@@ -1,3 +1,16 @@
+## [0.2.15] - 2026-11-08
+
+### 🚜 Refactor
+
+- Simplify log setup
+
+### 📚 Documentation
+
+- Improve comment on declaration
+
+### ⚙️ Miscellaneous Tasks
+
+- Update dependencies
 ## [0.2.14] - 2026-10-01
 
 ### 🐛 Bug Fixes
@@ -7,6 +20,10 @@
 ### 📚 Documentation
 
 - Recommend LSP settings, mention init options as fallback
+
+### ⚙️ Miscellaneous Tasks
+
+- Bump version to 0.2.14
 ## [0.2.13] - 2026-10-01
 
 ### 🐛 Bug Fixes
