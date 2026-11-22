@@ -39,6 +39,7 @@ pub(super) fn handle_request(
                 .send(Message::Response(Response::new_ok(id.clone(), val)))?;
         }};
     }
+
     macro_rules! respond_null {
         () => {{
             connection
@@ -62,6 +63,7 @@ pub(super) fn handle_request(
                 None => respond_null!(),
             }
         }
+
         GotoDefinition::METHOD => {
             let params: lsp_types::GotoDefinitionParams = serde_json::from_value(req.params)?;
             let uri = params
@@ -76,6 +78,7 @@ pub(super) fn handle_request(
                 _ => respond_null!(),
             }
         }
+
         References::METHOD => {
             let params: lsp_types::ReferenceParams = serde_json::from_value(req.params)?;
             let uri = params
@@ -88,6 +91,7 @@ pub(super) fn handle_request(
             let include_decl = params.context.include_declaration;
             respond!(handle_references(server, &uri, pos, include_decl));
         }
+
         Completion::METHOD => {
             let params: lsp_types::CompletionParams = serde_json::from_value(req.params)?;
             let uri = params
@@ -101,10 +105,12 @@ pub(super) fn handle_request(
                 server, &uri, pos
             )));
         }
+
         ResolveCompletionItem::METHOD => {
             let item: lsp_types::CompletionItem = serde_json::from_value(req.params)?;
             respond!(handle_completion_resolve(item));
         }
+
         DocumentHighlightRequest::METHOD => {
             let params: lsp_types::DocumentHighlightParams = serde_json::from_value(req.params)?;
             let uri = params
@@ -116,12 +122,14 @@ pub(super) fn handle_request(
             let pos = params.text_document_position_params.position;
             respond!(handle_document_highlight(server, &uri, pos));
         }
+
         DocumentSymbolRequest::METHOD => {
             let params: lsp_types::DocumentSymbolParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
             let syms = server.analyser.get_declarations_for_uri(&uri);
             respond!(lsp_types::DocumentSymbolResponse::Flat(syms));
         }
+
         WorkspaceSymbolRequest::METHOD => {
             let params: lsp_types::WorkspaceSymbolParams = serde_json::from_value(req.params)?;
             let syms = server
@@ -129,6 +137,7 @@ pub(super) fn handle_request(
                 .find_declarations_with_fuzzy_search(&params.query);
             respond!(WorkspaceSymbolResponse::Flat(syms));
         }
+
         CodeActionRequest::METHOD => {
             let params: lsp_types::CodeActionParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
@@ -138,6 +147,7 @@ pub(super) fn handle_request(
                 &params.context.diagnostics
             ));
         }
+
         PrepareRenameRequest::METHOD => {
             let params: lsp_types::TextDocumentPositionParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
@@ -147,6 +157,7 @@ pub(super) fn handle_request(
                 None => respond_null!(),
             }
         }
+
         Rename::METHOD => {
             let params: lsp_types::RenameParams = serde_json::from_value(req.params)?;
             let uri = params
@@ -161,6 +172,7 @@ pub(super) fn handle_request(
                 None => respond_null!(),
             }
         }
+
         Formatting::METHOD => {
             let params: lsp_types::DocumentFormattingParams = serde_json::from_value(req.params)?;
             let uri = params.text_document.uri.as_str().to_string();
@@ -251,6 +263,7 @@ pub(super) fn handle_notification(
                 server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
+
         DidOpenTextDocument::METHOD => {
             let params: lsp_types::DidOpenTextDocumentParams = serde_json::from_value(not.params)?;
             let uri = params.text_document.uri.as_str().to_string();
@@ -267,6 +280,7 @@ pub(super) fn handle_notification(
                 server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
+
         DidChangeTextDocument::METHOD => {
             let params: lsp_types::DidChangeTextDocumentParams =
                 serde_json::from_value(not.params)?;
@@ -289,6 +303,7 @@ pub(super) fn handle_notification(
                 server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
+
         DidCloseTextDocument::METHOD => {
             let params: lsp_types::DidCloseTextDocumentParams = serde_json::from_value(not.params)?;
             let uri = params.text_document.uri.as_str().to_string();
@@ -303,6 +318,7 @@ pub(super) fn handle_notification(
             let notif = Notification::new(PublishDiagnostics::METHOD.to_string(), params);
             let _ = connection.sender.send(Message::Notification(notif));
         }
+
         DidChangeConfiguration::METHOD => {
             let params: lsp_types::DidChangeConfigurationParams =
                 serde_json::from_value(not.params)?;
@@ -315,6 +331,7 @@ pub(super) fn handle_notification(
                 server.analyze_and_lint(&uri, &content, connection, lint_tx);
             }
         }
+
         _ => {}
     }
     Ok(())
